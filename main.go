@@ -34,5 +34,5 @@ func main() {
 	userController := controller.NewUserController(userService)
 
 	router := app.NewRouter(userController)
-	router.Run()
+	router.Run(":8000")
 }

@@ -26,5 +26,5 @@ func (r routes) addPing(usercontroller controller.UserController, rg *gin.Router
 }
 
 func (r routes) Run(addr ...string) error {
-	return r.router.Run(":8000")
+	return r.router.Run(addr...)
 }

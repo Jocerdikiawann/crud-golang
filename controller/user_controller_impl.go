@@ -43,5 +43,20 @@ func (controller *UserControllerImpl) Create(c *gin.Context) {
 }
 
 func (controller *UserControllerImpl) Getuser(c *gin.Context) {
+	id := c.Param("id")
+	data := controller.service.Getuser(c.Request.Context(), id)
 
+	user := domain.User{
+		Id:        data.Id,
+		FirstName: data.FirstName,
+		LastName:  data.LastName,
+		Address:   data.Address,
+	}
+
+	responseJson := response.WebResponse{
+		StatusCode: http.StatusOK,
+		Message:    "ok",
+		Data:       user,
+	}
+	c.IndentedJSON(responseJson.StatusCode, responseJson)
 }

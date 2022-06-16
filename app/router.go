@@ -23,6 +23,7 @@ func NewRouter(usercontroller controller.UserController) routes {
 func (r routes) addPing(usercontroller controller.UserController, rg *gin.RouterGroup) {
 	ping := rg.Group("users")
 	ping.POST("/", usercontroller.Create)
+	ping.GET("/:id", usercontroller.Getuser)
 }
 
 func (r routes) Run(addr ...string) error {

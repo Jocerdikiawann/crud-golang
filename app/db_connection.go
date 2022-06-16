@@ -19,12 +19,11 @@ func DbConnect(usernameDb, passwordDb, nameDb, hostDb, portDb string) *mongo.Dat
 	_ = cancel
 
 	//credential := options.Credential{
-	//	AuthSource: "admin",
-	//	Username:   usernameDb,
-	//	Password:   passwordDb,
+	//	Username: usernameDb,
+	//	Password: passwordDb,
 	//}
 
-	clientOptions := options.Client().ApplyURI(uri)
+	clientOptions := options.Client().ApplyURI(uri) //.SetAuth(credential)
 	client, err := mongo.NewClient(clientOptions)
 	utils.IfErrorHandler(err)
 

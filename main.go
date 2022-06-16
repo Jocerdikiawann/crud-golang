@@ -9,7 +9,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/joho/godotenv"
 )
@@ -26,12 +25,14 @@ func main() {
 	dbPort := os.Getenv("MONGO_PORT")
 	dbName := os.Getenv("MONGO_DB_NAME")
 	dbHost := os.Getenv("MONGO_HOST")
+
 	Db := app.DbConnect(dbUserName, dbPassword, dbName, dbHost, dbPort)
-	router := gin.Default()
 	validate := validator.New()
+
 	userRepository := repository.NewUserRepository()
 	userService := services.NewUserService(userRepository, Db, validate)
 	userController := controller.NewUserController(userService)
-	router.POST("/", userController.Create)
-	router.Run(":8000")
+
+	router := app.NewRouter(userController)
+	router.Run()
 }

@@ -2,19 +2,36 @@
 package main
 
 import (
-	"belajar-golang-rest-api/domain/db"
-	"net/http"
+	"belajar-golang-rest-api/app"
+	"belajar-golang-rest-api/controller"
+	"belajar-golang-rest-api/repository"
+	"belajar-golang-rest-api/services"
+	"log"
+	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+	"github.com/joho/godotenv"
 )
 
-func getUsers(c *gin.Context) {
-	db.DbConnect()
-	c.JSON(http.StatusOK, "test aja")
+func init() {
+	if err := godotenv.Load(); err != nil {
+		log.Println("failed load .env")
+	}
 }
 
 func main() {
+	dbUserName := os.Getenv("MONGO_USERNAME")
+	dbPassword := os.Getenv("MONGO_PASSWORD")
+	dbPort := os.Getenv("MONGO_PORT")
+	dbName := os.Getenv("MONGO_DB_NAME")
+	dbHost := os.Getenv("MONGO_HOST")
+	Db := app.DbConnect(dbUserName, dbPassword, dbName, dbHost, dbPort)
 	router := gin.Default()
-	router.GET("/", getUsers)
+	validate := validator.New()
+	userRepository := repository.NewUserRepository()
+	userService := services.NewUserService(userRepository, Db, validate)
+	userController := controller.NewUserController(userService)
+	router.POST("/", userController.Create)
 	router.Run(":8000")
 }

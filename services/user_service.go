@@ -7,5 +7,7 @@ import (
 
 type UserService interface {
 	Create(ctx context.Context, request domain.User) domain.User
-	Getuser(ctx context.Context, id string) domain.User
+	GetUser(ctx context.Context, id string) domain.User
+	GetUsers(ctx context.Context) []domain.User
+	Update(ctx context.Context) domain.User
 }

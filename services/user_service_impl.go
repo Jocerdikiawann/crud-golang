@@ -31,7 +31,17 @@ func (c *UserServiceImpl) Create(ctx context.Context, request domain.User) domai
 	return result
 }
 
-func (c *UserServiceImpl) Getuser(ctx context.Context, id string) domain.User {
+func (c *UserServiceImpl) GetUser(ctx context.Context, id string) domain.User {
 	result := c.UserRepo.GetUser(ctx, c.Db, id)
+	return result
+}
+
+func (c *UserServiceImpl) GetUsers(ctx context.Context) []domain.User {
+	result := c.UserRepo.GetUsers(ctx, c.Db)
+	return result
+}
+
+func (c *UserServiceImpl) Update(ctx context.Context) domain.User {
+	result := c.UserRepo.Update(ctx, c.Db)
 	return result
 }

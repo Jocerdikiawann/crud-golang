@@ -26,37 +26,40 @@ func (controller *UserControllerImpl) Create(c *gin.Context) {
 	}
 
 	data := controller.service.Create(c.Request.Context(), body)
-	newUser := domain.User{
-		Id:        data.Id,
-		FirstName: data.FirstName,
-		LastName:  data.LastName,
-		Address:   data.Address,
-	}
+
 	responseJson := response.WebResponse{
 		StatusCode: http.StatusCreated,
 		Message:    "ok",
-		Data:       newUser,
+		Data:       data,
 	}
 
 	c.IndentedJSON(http.StatusCreated, responseJson)
-
 }
 
-func (controller *UserControllerImpl) Getuser(c *gin.Context) {
+func (controller *UserControllerImpl) GetUser(c *gin.Context) {
 	id := c.Param("id")
-	data := controller.service.Getuser(c.Request.Context(), id)
-
-	user := domain.User{
-		Id:        data.Id,
-		FirstName: data.FirstName,
-		LastName:  data.LastName,
-		Address:   data.Address,
-	}
+	data := controller.service.GetUser(c.Request.Context(), id)
 
 	responseJson := response.WebResponse{
 		StatusCode: http.StatusOK,
 		Message:    "ok",
-		Data:       user,
+		Data:       data,
 	}
 	c.IndentedJSON(responseJson.StatusCode, responseJson)
+}
+
+func (controller *UserControllerImpl) GetUsers(c *gin.Context) {
+	data := controller.service.GetUsers(c.Request.Context())
+
+	responseJson := response.WebResponse{
+		StatusCode: http.StatusOK,
+		Message:    "ok",
+		Data:       data,
+	}
+
+	c.IndentedJSON(responseJson.StatusCode, responseJson)
+}
+
+func (controller *UserControllerImpl) Update(c *gin.Context) {
+
 }

@@ -40,3 +40,17 @@ func (repo *UserRepositoryImpl) GetUser(ctx context.Context, db *mongo.Database,
 	result.Decode(&data)
 	return data
 }
+
+func (repo *UserRepositoryImpl) GetUsers(ctx context.Context, db *mongo.Database) []domain.User {
+	var data []domain.User
+	filter := bson.M{}
+	result, err := db.Collection("user").Find(ctx, filter)
+	utils.IfErrorHandler(err)
+	error := result.All(ctx, &data)
+	utils.IfErrorHandler(error)
+	return data
+}
+
+func (repo *UserRepositoryImpl) Update(ctx context.Context, db *mongo.Database) domain.User {
+	return domain.User{}
+}

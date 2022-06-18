@@ -1,7 +1,9 @@
 package utils
 
+import "fmt"
+
 func IfErrorHandler(err error) {
 	if err != nil {
-		panic(err)
+		fmt.Println("Error : ", err)
 	}
 }

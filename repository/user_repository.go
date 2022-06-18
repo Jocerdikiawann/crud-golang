@@ -8,8 +8,8 @@ import (
 )
 
 type UserRepository interface {
-	Create(ctx context.Context, db *mongo.Database, request domain.User) domain.User
-	GetUser(ctx context.Context, db *mongo.Database, id string) domain.User
-	GetUsers(ctx context.Context, db *mongo.Database) []domain.User
-	Update(ctx context.Context, db *mongo.Database) domain.User
+	Create(ctx context.Context, db *mongo.Database, request domain.User) (domain.User, error)
+	GetUser(ctx context.Context, db *mongo.Database, id string) (domain.User, error)
+	GetUsers(ctx context.Context, db *mongo.Database) ([]domain.User, error)
+	Update(ctx context.Context, db *mongo.Database) (domain.User, error)
 }

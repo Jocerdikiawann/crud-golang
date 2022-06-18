@@ -21,40 +21,71 @@ func NewUserController(services services.UserService) UserController {
 
 func (controller *UserControllerImpl) Create(c *gin.Context) {
 	var body domain.User
-	if err := c.BindJSON(&body); err != nil {
-		return
-	}
-
-	data := controller.service.Create(c.Request.Context(), body)
-
-	responseJson := response.WebResponse{
-		StatusCode: http.StatusCreated,
-		Message:    "ok",
-		Data:       data,
+	var responseJson response.WebResponse
+	if e := c.BindJSON(&body); e != nil {
+		responseJson = response.WebResponse{
+			StatusCode: http.StatusBadRequest,
+			Message:    "error",
+			Data:       gin.H{},
+		}
+	} else {
+		data, err := controller.service.Create(c.Request.Context(), body)
+		if err != nil {
+			responseJson = response.WebResponse{
+				StatusCode: http.StatusNotFound,
+				Message:    "error",
+				Data:       gin.H{},
+			}
+		} else {
+			responseJson = response.WebResponse{
+				StatusCode: http.StatusCreated,
+				Message:    "ok",
+				Data:       data,
+			}
+		}
 	}
 
 	c.IndentedJSON(http.StatusCreated, responseJson)
 }
 
 func (controller *UserControllerImpl) GetUser(c *gin.Context) {
+	var responseJson response.WebResponse
 	id := c.Param("id")
-	data := controller.service.GetUser(c.Request.Context(), id)
+	data, err := controller.service.GetUser(c.Request.Context(), id)
 
-	responseJson := response.WebResponse{
-		StatusCode: http.StatusOK,
-		Message:    "ok",
-		Data:       data,
+	if err != nil {
+		responseJson = response.WebResponse{
+			StatusCode: http.StatusNotFound,
+			Message:    "error",
+			Data:       gin.H{},
+		}
+	} else {
+		responseJson = response.WebResponse{
+			StatusCode: http.StatusOK,
+			Message:    "ok",
+			Data:       data,
+		}
 	}
+
 	c.IndentedJSON(responseJson.StatusCode, responseJson)
 }
 
 func (controller *UserControllerImpl) GetUsers(c *gin.Context) {
-	data := controller.service.GetUsers(c.Request.Context())
+	var responseJson response.WebResponse
+	data, err := controller.service.GetUsers(c.Request.Context())
 
-	responseJson := response.WebResponse{
-		StatusCode: http.StatusOK,
-		Message:    "ok",
-		Data:       data,
+	if err != nil {
+		responseJson = response.WebResponse{
+			StatusCode: http.StatusNotFound,
+			Message:    "error",
+			Data:       gin.H{},
+		}
+	} else {
+		responseJson = response.WebResponse{
+			StatusCode: http.StatusOK,
+			Message:    "ok",
+			Data:       data,
+		}
 	}
 
 	c.IndentedJSON(responseJson.StatusCode, responseJson)

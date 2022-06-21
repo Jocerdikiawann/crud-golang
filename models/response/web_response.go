@@ -2,6 +2,6 @@ package response
 
 type WebResponse struct {
 	StatusCode int         `json:"statusCode"`
-	Message    string      `json:"message"`
+	Message    interface{} `json:"message"`
 	Data       interface{} `json:"data"`
 }

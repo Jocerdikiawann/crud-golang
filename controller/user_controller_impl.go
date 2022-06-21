@@ -25,7 +25,7 @@ func (controller *UserControllerImpl) Create(c *gin.Context) {
 	if e := c.BindJSON(&body); e != nil {
 		responseJson = response.WebResponse{
 			StatusCode: http.StatusBadRequest,
-			Message:    "error",
+			Message:    []error{e},
 			Data:       gin.H{},
 		}
 	} else {
@@ -33,13 +33,13 @@ func (controller *UserControllerImpl) Create(c *gin.Context) {
 		if err != nil {
 			responseJson = response.WebResponse{
 				StatusCode: http.StatusNotFound,
-				Message:    "error",
+				Message:    err,
 				Data:       gin.H{},
 			}
 		} else {
 			responseJson = response.WebResponse{
 				StatusCode: http.StatusCreated,
-				Message:    "ok",
+				Message:    []string{"ok"},
 				Data:       data,
 			}
 		}
@@ -56,13 +56,13 @@ func (controller *UserControllerImpl) GetUser(c *gin.Context) {
 	if err != nil {
 		responseJson = response.WebResponse{
 			StatusCode: http.StatusNotFound,
-			Message:    "error",
+			Message:    err,
 			Data:       gin.H{},
 		}
 	} else {
 		responseJson = response.WebResponse{
 			StatusCode: http.StatusOK,
-			Message:    "ok",
+			Message:    []string{"ok"},
 			Data:       data,
 		}
 	}
@@ -77,13 +77,14 @@ func (controller *UserControllerImpl) GetUsers(c *gin.Context) {
 	if err != nil {
 		responseJson = response.WebResponse{
 			StatusCode: http.StatusNotFound,
-			Message:    "error",
+			Message:    err,
 			Data:       gin.H{},
 		}
+
 	} else {
 		responseJson = response.WebResponse{
 			StatusCode: http.StatusOK,
-			Message:    "ok",
+			Message:    []string{"ok"},
 			Data:       data,
 		}
 	}

@@ -2,6 +2,7 @@ package services
 
 import (
 	"belajar-golang-rest-api/models/domain"
+	"belajar-golang-rest-api/models/response"
 	"belajar-golang-rest-api/repository"
 	"belajar-golang-rest-api/utils"
 	"context"
@@ -24,24 +25,24 @@ func NewUserService(repo repository.UserRepository, Db *mongo.Database, validate
 	}
 }
 
-func (c *UserServiceImpl) Create(ctx context.Context, request domain.User) (domain.User, error) {
+func (c *UserServiceImpl) Create(ctx context.Context, request domain.User) (response.UserResponse, []error) {
 	e := c.Validate.Struct(request)
 	utils.IfErrorHandler(e)
 	result, err := c.UserRepo.Create(ctx, c.Db, request)
 	return result, err
 }
 
-func (c *UserServiceImpl) GetUser(ctx context.Context, id string) (domain.User, error) {
+func (c *UserServiceImpl) GetUser(ctx context.Context, id string) (response.UserResponse, []error) {
 	result, err := c.UserRepo.GetUser(ctx, c.Db, id)
 	return result, err
 }
 
-func (c *UserServiceImpl) GetUsers(ctx context.Context) ([]domain.User, error) {
+func (c *UserServiceImpl) GetUsers(ctx context.Context) ([]response.UserResponse, []error) {
 	result, err := c.UserRepo.GetUsers(ctx, c.Db)
 	return result, err
 }
 
-func (c *UserServiceImpl) Update(ctx context.Context) (domain.User, error) {
+func (c *UserServiceImpl) Update(ctx context.Context) (response.UserResponse, []error) {
 	result, err := c.UserRepo.Update(ctx, c.Db)
 	return result, err
 }

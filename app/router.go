@@ -29,7 +29,7 @@ func (r routes) routeNotFound() {
 	r.router.NoRoute(func(c *gin.Context) {
 		res := response.WebResponse{
 			StatusCode: http.StatusNotFound,
-			Message:    "route not found",
+			Message:    []string{"route not found"},
 			Data:       gin.H{},
 		}
 		c.IndentedJSON(res.StatusCode, res)

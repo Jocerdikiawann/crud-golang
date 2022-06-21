@@ -1,8 +1,8 @@
-package requests
+package response
 
-type UserRequest struct {
+type UserResponse struct {
+	Id        string `json:"_id" bson:"_id"`
 	Email     string `json:"email" bson:"email"`
-	Password  []byte `json:"password" bson:"password"`
 	FirstName string `json:"firstName" bson:"firstName"`
 	LastName  string `json:"lastName" bson:"lastName"`
 	Address   string `json:"address" bson:"address"`

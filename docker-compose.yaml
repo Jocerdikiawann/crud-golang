@@ -17,6 +17,7 @@ services:
       - "mongo-data:/data/db"
     expose:
       - ${MONGO_PORT}
+    command: mongod
 networks:
   service-networks:
     driver: bridge

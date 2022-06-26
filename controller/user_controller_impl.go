@@ -2,6 +2,7 @@ package controller
 
 import (
 	"belajar-golang-rest-api/models/domain"
+	"belajar-golang-rest-api/models/requests"
 	"belajar-golang-rest-api/models/response"
 	"belajar-golang-rest-api/services"
 	"net/http"
@@ -25,7 +26,7 @@ func (controller *UserControllerImpl) Create(c *gin.Context) {
 	if e := c.BindJSON(&body); e != nil {
 		responseJson = response.WebResponse{
 			StatusCode: http.StatusBadRequest,
-			Message:    []error{e},
+			Message:    e.Error(),
 			Data:       gin.H{},
 		}
 	} else {
@@ -33,13 +34,13 @@ func (controller *UserControllerImpl) Create(c *gin.Context) {
 		if err != nil {
 			responseJson = response.WebResponse{
 				StatusCode: http.StatusNotFound,
-				Message:    err,
+				Message:    err.Error(),
 				Data:       gin.H{},
 			}
 		} else {
 			responseJson = response.WebResponse{
 				StatusCode: http.StatusCreated,
-				Message:    []string{"ok"},
+				Message:    "Ok",
 				Data:       data,
 			}
 		}
@@ -56,13 +57,13 @@ func (controller *UserControllerImpl) GetUser(c *gin.Context) {
 	if err != nil {
 		responseJson = response.WebResponse{
 			StatusCode: http.StatusNotFound,
-			Message:    err,
+			Message:    err.Error(),
 			Data:       gin.H{},
 		}
 	} else {
 		responseJson = response.WebResponse{
 			StatusCode: http.StatusOK,
-			Message:    []string{"ok"},
+			Message:    "ok",
 			Data:       data,
 		}
 	}
@@ -77,14 +78,14 @@ func (controller *UserControllerImpl) GetUsers(c *gin.Context) {
 	if err != nil {
 		responseJson = response.WebResponse{
 			StatusCode: http.StatusNotFound,
-			Message:    err,
+			Message:    err.Error(),
 			Data:       gin.H{},
 		}
 
 	} else {
 		responseJson = response.WebResponse{
 			StatusCode: http.StatusOK,
-			Message:    []string{"ok"},
+			Message:    "ok",
 			Data:       data,
 		}
 	}
@@ -93,5 +94,43 @@ func (controller *UserControllerImpl) GetUsers(c *gin.Context) {
 }
 
 func (controller *UserControllerImpl) Update(c *gin.Context) {
+
+	id := c.Param("id")
+	var body requests.UserBody
+	var res response.WebResponse
+
+	if e := c.BindJSON(&body); e != nil {
+		res = response.WebResponse{
+			StatusCode: http.StatusBadRequest,
+			Message:    e.Error(),
+			Data:       gin.H{},
+		}
+	} else {
+		req := domain.User{
+			Id:        id,
+			Email:     body.Email,
+			Password:  body.Password,
+			FirstName: body.FirstName,
+			LastName:  body.LastName,
+			Address:   body.Address,
+		}
+		data, err := controller.service.Update(c.Request.Context(), req)
+		if err != nil {
+			res = response.WebResponse{
+				StatusCode: http.StatusBadRequest,
+				Message:    err.Error(),
+				Data:       gin.H{},
+			}
+
+		} else {
+			res = response.WebResponse{
+				StatusCode: http.StatusCreated,
+				Message:    "Ok",
+				Data:       data,
+			}
+		}
+	}
+
+	c.IndentedJSON(res.StatusCode, res)
 
 }

@@ -29,7 +29,7 @@ func (r routes) routeNotFound() {
 	r.router.NoRoute(func(c *gin.Context) {
 		res := response.WebResponse{
 			StatusCode: http.StatusNotFound,
-			Message:    []string{"route not found"},
+			Message:    "route not found",
 			Data:       gin.H{},
 		}
 		c.IndentedJSON(res.StatusCode, res)
@@ -41,6 +41,7 @@ func (r routes) addPing(usercontroller controller.UserController, rg *gin.Router
 	ping.POST("/", usercontroller.Create)
 	ping.GET("/:id", usercontroller.GetUser)
 	ping.GET("/", usercontroller.GetUsers)
+	ping.PUT("/:id", usercontroller.Update)
 }
 
 func (r routes) Run(addr ...string) error {

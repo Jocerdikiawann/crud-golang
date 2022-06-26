@@ -11,7 +11,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type UserRepositoryImpl struct{}
@@ -21,29 +20,10 @@ func NewUserRepository() UserRepository {
 	return &UserRepositoryImpl{}
 }
 
-func (repo *UserRepositoryImpl) Create(ctx context.Context, db *mongo.Database, request domain.User) (response.UserResponse, []error) {
+func (repo *UserRepositoryImpl) Create(ctx context.Context, db *mongo.Database, request requests.UserRequest) (response.UserResponse, error) {
 
-	var errs []error
-
-	password := []byte(request.Password)
-	hashedPassword, errPass := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
-	fmt.Println("hash", hashedPassword)
-	utils.IfErrorHandler(errPass)
-
-	requestData := requests.UserRequest{
-		Email:     request.Email,
-		Password:  hashedPassword,
-		FirstName: request.FirstName,
-		LastName:  request.LastName,
-		Address:   request.LastName,
-	}
-
-	result, err := db.Collection("user").InsertOne(ctx, requestData)
+	result, err := db.Collection("user").InsertOne(ctx, request)
 	utils.IfErrorHandler(err)
-
-	if errPass != nil || err != nil {
-		errs = append(errs, errPass, err)
-	}
 
 	return response.UserResponse{
 		Id:        result.InsertedID.(primitive.ObjectID).Hex(),
@@ -51,16 +31,15 @@ func (repo *UserRepositoryImpl) Create(ctx context.Context, db *mongo.Database, 
 		LastName:  request.LastName,
 		Email:     request.Email,
 		Address:   request.Address,
-	}, errs
+	}, err
 }
 
-func (repo *UserRepositoryImpl) GetUser(ctx context.Context, db *mongo.Database, id string) (response.UserResponse, []error) {
+func (repo *UserRepositoryImpl) GetUser(ctx context.Context, db *mongo.Database, id string) (response.UserResponse, error) {
 
-	var errs []error
-	data := requests.UserRequest{}
+	var data requests.UserRequest
 
-	objId, err := primitive.ObjectIDFromHex(id)
-	utils.IfErrorHandler(err)
+	objId, err_ := primitive.ObjectIDFromHex(id)
+	utils.IfErrorHandler(err_)
 
 	filter := bson.M{
 		"_id": objId,
@@ -68,11 +47,8 @@ func (repo *UserRepositoryImpl) GetUser(ctx context.Context, db *mongo.Database,
 
 	result := db.Collection("user").FindOne(ctx, filter)
 
-	errD := result.Decode(&data)
-	utils.IfErrorHandler(errD)
-	if err != nil || errD != nil {
-		errs = append(errs, err, errD)
-	}
+	err := result.Decode(&data)
+	utils.IfErrorHandler(err)
 
 	userData := response.UserResponse{
 		Id:        objId.Hex(),
@@ -82,22 +58,21 @@ func (repo *UserRepositoryImpl) GetUser(ctx context.Context, db *mongo.Database,
 		Address:   data.Address,
 	}
 
-	return userData, errs
+	return userData, err
 }
 
-func (repo *UserRepositoryImpl) GetUsers(ctx context.Context, db *mongo.Database) ([]response.UserResponse, []error) {
+func (repo *UserRepositoryImpl) GetUsers(ctx context.Context, db *mongo.Database) ([]response.UserResponse, error) {
 
-	var errs []error
 	var data []domain.User
 	var allData []response.UserResponse
 
 	filter := bson.M{}
 
-	result, err := db.Collection("user").Find(ctx, filter)
-	utils.IfErrorHandler(err)
+	result, errDb := db.Collection("user").Find(ctx, filter)
+	utils.IfErrorHandler(errDb)
 
-	error_ := result.All(ctx, &data)
-	utils.IfErrorHandler(error_)
+	err := result.All(ctx, &data)
+	utils.IfErrorHandler(err)
 
 	for _, v := range data {
 		tmp := response.UserResponse{
@@ -110,13 +85,23 @@ func (repo *UserRepositoryImpl) GetUsers(ctx context.Context, db *mongo.Database
 		allData = append(allData, tmp)
 	}
 
-	if err != nil || error_ != nil {
-		errs = append(errs, err, error_)
-	}
-
-	return allData, errs
+	return allData, errDb
 }
 
-func (repo *UserRepositoryImpl) Update(ctx context.Context, db *mongo.Database) (response.UserResponse, []error) {
+func (repo *UserRepositoryImpl) Update(ctx context.Context, db *mongo.Database, filter bson.M, request requests.UserRequest) (bool, error) {
+
+	_, err := db.Collection("user").UpdateOne(ctx, filter, bson.M{"$set": request})
+
+	utils.IfErrorHandler(err)
+	fmt.Println(err)
+
+	if err != nil {
+		return false, err
+	}
+
+	return true, err
+}
+
+func (repo *UserRepositoryImpl) Delete(ctx context.Context, db *mongo.Database, id string) (response.UserResponse, error) {
 	return response.UserResponse{}, nil
 }

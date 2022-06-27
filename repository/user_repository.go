@@ -14,5 +14,5 @@ type UserRepository interface {
 	GetUser(ctx context.Context, db *mongo.Database, id string) (response.UserResponse, error)
 	GetUsers(ctx context.Context, db *mongo.Database) ([]response.UserResponse, error)
 	Update(ctx context.Context, db *mongo.Database, filter bson.M, request requests.UserRequest) (bool, error)
-	Delete(ctx context.Context, db *mongo.Database, id string) (response.UserResponse, error)
+	Delete(ctx context.Context, db *mongo.Database, filter bson.M) (bool, error)
 }

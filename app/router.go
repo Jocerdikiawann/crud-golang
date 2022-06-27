@@ -42,6 +42,7 @@ func (r routes) addPing(usercontroller controller.UserController, rg *gin.Router
 	ping.GET("/:id", usercontroller.GetUser)
 	ping.GET("/", usercontroller.GetUsers)
 	ping.PUT("/:id", usercontroller.Update)
+	ping.DELETE("/:id", usercontroller.Delete)
 }
 
 func (r routes) Run(addr ...string) error {

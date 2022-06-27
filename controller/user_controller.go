@@ -7,4 +7,5 @@ type UserController interface {
 	GetUser(c *gin.Context)
 	GetUsers(c *gin.Context)
 	Update(c *gin.Context)
+	Delete(c *gin.Context)
 }

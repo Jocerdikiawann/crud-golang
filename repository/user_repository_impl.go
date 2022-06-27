@@ -92,9 +92,7 @@ func (repo *UserRepositoryImpl) Update(ctx context.Context, db *mongo.Database, 
 
 	_, err := db.Collection("user").UpdateOne(ctx, filter, bson.M{"$set": request})
 
-	utils.IfErrorHandler(err)
 	fmt.Println(err)
-
 	if err != nil {
 		return false, err
 	}
@@ -102,6 +100,10 @@ func (repo *UserRepositoryImpl) Update(ctx context.Context, db *mongo.Database, 
 	return true, err
 }
 
-func (repo *UserRepositoryImpl) Delete(ctx context.Context, db *mongo.Database, id string) (response.UserResponse, error) {
-	return response.UserResponse{}, nil
+func (repo *UserRepositoryImpl) Delete(ctx context.Context, db *mongo.Database, filter bson.M) (bool, error) {
+	res, err := db.Collection("user").DeleteOne(ctx, filter)
+	if res.DeletedCount == 0 {
+		return false, err
+	}
+	return true, nil
 }

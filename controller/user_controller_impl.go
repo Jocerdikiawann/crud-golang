@@ -132,5 +132,25 @@ func (controller *UserControllerImpl) Update(c *gin.Context) {
 	}
 
 	c.IndentedJSON(res.StatusCode, res)
+}
 
+func (controller *UserControllerImpl) Delete(c *gin.Context) {
+	var res response.WebResponse
+	id := c.Param("id")
+
+	data, err := controller.service.Delete(c.Request.Context(), id)
+	if err != nil {
+		res = response.WebResponse{
+			StatusCode: http.StatusNotFound,
+			Message:    err.Error(),
+			Data:       gin.H{},
+		}
+	} else {
+		res = response.WebResponse{
+			StatusCode: http.StatusOK,
+			Message:    "ok",
+			Data:       data,
+		}
+		c.IndentedJSON(res.StatusCode, res)
+	}
 }

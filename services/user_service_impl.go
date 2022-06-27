@@ -79,12 +79,29 @@ func (c *UserServiceImpl) Update(ctx context.Context, request domain.User) (resp
 		Address:   request.Address,
 	}
 	result, err := c.UserRepo.Update(ctx, c.Db, filter, updatedData)
-	utils.IfErrorHandler(err)
 	if result {
 		getNewData, errNewData := c.UserRepo.GetUser(ctx, c.Db, request.Id)
-		utils.IfErrorHandler(errNewData)
-		return getNewData, err
+		return getNewData, errNewData
 	}
 
 	return response.UserResponse{}, err
+}
+
+func (c *UserServiceImpl) Delete(ctx context.Context, id string) ([]response.UserResponse, error) {
+
+	var newDataUser []response.UserResponse
+
+	objId, errId := primitive.ObjectIDFromHex(id)
+	utils.IfErrorHandler(errId)
+
+	filter := bson.M{
+		"_id": objId,
+	}
+
+	result, err := c.UserRepo.Delete(ctx, c.Db, filter)
+	if result {
+		newDataUser, _ = c.UserRepo.GetUsers(ctx, c.Db)
+		return newDataUser, err
+	}
+	return newDataUser, err
 }

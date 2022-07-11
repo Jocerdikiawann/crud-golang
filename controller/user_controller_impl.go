@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"belajar-golang-rest-api/models/domain"
+	usersdomain "belajar-golang-rest-api/models/domain/users_domain"
 	"belajar-golang-rest-api/models/requests"
 	"belajar-golang-rest-api/models/response"
 	"belajar-golang-rest-api/services"
@@ -21,7 +21,7 @@ func NewUserController(services services.UserService) UserController {
 }
 
 func (controller *UserControllerImpl) Create(c *gin.Context) {
-	var body domain.User
+	var body usersdomain.User
 	var responseJson response.WebResponse
 	if e := c.BindJSON(&body); e != nil {
 		responseJson = response.WebResponse{
@@ -106,7 +106,7 @@ func (controller *UserControllerImpl) Update(c *gin.Context) {
 			Data:       gin.H{},
 		}
 	} else {
-		req := domain.User{
+		req := usersdomain.User{
 			Id:        id,
 			Email:     body.Email,
 			Password:  body.Password,

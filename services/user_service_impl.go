@@ -1,7 +1,7 @@
 package services
 
 import (
-	"belajar-golang-rest-api/models/domain"
+	usersdomain "belajar-golang-rest-api/models/domain/users_domain"
 	"belajar-golang-rest-api/models/requests"
 	"belajar-golang-rest-api/models/response"
 	"belajar-golang-rest-api/repository"
@@ -29,7 +29,7 @@ func NewUserService(repo repository.UserRepository, Db *mongo.Database, validate
 	}
 }
 
-func (c *UserServiceImpl) Create(ctx context.Context, req domain.User) (response.UserResponse, error) {
+func (c *UserServiceImpl) Create(ctx context.Context, req usersdomain.User) (usersdomain.User, error) {
 	errvalidate := c.Validate.Struct(req)
 	utils.IfErrorHandler(errvalidate)
 
@@ -60,7 +60,7 @@ func (c *UserServiceImpl) GetUsers(ctx context.Context) ([]response.UserResponse
 	return result, err
 }
 
-func (c *UserServiceImpl) Update(ctx context.Context, request domain.User) (response.UserResponse, error) {
+func (c *UserServiceImpl) Update(ctx context.Context, request usersdomain.User) (response.UserResponse, error) {
 
 	password := []byte(request.Password)
 	hashedPassword, errPass := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)

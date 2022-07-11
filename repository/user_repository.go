@@ -1,6 +1,7 @@
 package repository
 
 import (
+	usersdomain "belajar-golang-rest-api/models/domain/users_domain"
 	"belajar-golang-rest-api/models/requests"
 	"belajar-golang-rest-api/models/response"
 	"context"
@@ -10,7 +11,7 @@ import (
 )
 
 type UserRepository interface {
-	Create(ctx context.Context, db *mongo.Database, request requests.UserRequest) (response.UserResponse, error)
+	Create(ctx context.Context, db *mongo.Database, request requests.UserRequest) (usersdomain.User, error)
 	GetUser(ctx context.Context, db *mongo.Database, id string) (response.UserResponse, error)
 	GetUsers(ctx context.Context, db *mongo.Database) ([]response.UserResponse, error)
 	Update(ctx context.Context, db *mongo.Database, filter bson.M, request requests.UserRequest) (bool, error)

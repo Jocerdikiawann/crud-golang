@@ -1,7 +1,8 @@
 package repository
 
 import (
-	"belajar-golang-rest-api/models/domain"
+	"belajar-golang-rest-api/middlewares"
+	usersdomain "belajar-golang-rest-api/models/domain/users_domain"
 	"belajar-golang-rest-api/models/requests"
 	"belajar-golang-rest-api/models/response"
 	"belajar-golang-rest-api/utils"
@@ -20,18 +21,26 @@ func NewUserRepository() UserRepository {
 	return &UserRepositoryImpl{}
 }
 
-func (repo *UserRepositoryImpl) Create(ctx context.Context, db *mongo.Database, request requests.UserRequest) (response.UserResponse, error) {
+func (repo *UserRepositoryImpl) Create(ctx context.Context, db *mongo.Database, request requests.UserRequest) (usersdomain.User, error) {
 
+	//TODO: pake jwt
+	accessToken, errToken := middlewares.CreateToken(request.Email)
+	utils.IfErrorHandler(errToken)
+	request.AccessToken = accessToken
+	fmt.Print(request)
 	result, err := db.Collection("user").InsertOne(ctx, request)
 	utils.IfErrorHandler(err)
 
-	return response.UserResponse{
-		Id:        result.InsertedID.(primitive.ObjectID).Hex(),
-		FirstName: request.FirstName,
-		LastName:  request.LastName,
-		Email:     request.Email,
-		Address:   request.Address,
-	}, err
+	userdomain := usersdomain.User{
+		Id:          result.InsertedID.(primitive.ObjectID).Hex(),
+		Email:       request.Email,
+		FirstName:   request.FirstName,
+		LastName:    request.LastName,
+		Address:     request.Address,
+		AccessToken: accessToken,
+	}
+
+	return userdomain, err
 }
 
 func (repo *UserRepositoryImpl) GetUser(ctx context.Context, db *mongo.Database, id string) (response.UserResponse, error) {
@@ -51,11 +60,12 @@ func (repo *UserRepositoryImpl) GetUser(ctx context.Context, db *mongo.Database,
 	utils.IfErrorHandler(err)
 
 	userData := response.UserResponse{
-		Id:        objId.Hex(),
-		Email:     data.Email,
-		FirstName: data.FirstName,
-		LastName:  data.LastName,
-		Address:   data.Address,
+		Id:          objId.Hex(),
+		Email:       data.Email,
+		FirstName:   data.FirstName,
+		LastName:    data.LastName,
+		Address:     data.Address,
+		AccessToken: data.AccessToken,
 	}
 
 	return userData, err
@@ -63,7 +73,7 @@ func (repo *UserRepositoryImpl) GetUser(ctx context.Context, db *mongo.Database,
 
 func (repo *UserRepositoryImpl) GetUsers(ctx context.Context, db *mongo.Database) ([]response.UserResponse, error) {
 
-	var data []domain.User
+	var data []usersdomain.User
 	var allData []response.UserResponse
 
 	filter := bson.M{}
@@ -76,11 +86,12 @@ func (repo *UserRepositoryImpl) GetUsers(ctx context.Context, db *mongo.Database
 
 	for _, v := range data {
 		tmp := response.UserResponse{
-			Id:        v.Id,
-			Email:     v.Email,
-			FirstName: v.FirstName,
-			LastName:  v.LastName,
-			Address:   v.Address,
+			Id:          v.Id,
+			Email:       v.Email,
+			FirstName:   v.FirstName,
+			LastName:    v.LastName,
+			Address:     v.Address,
+			AccessToken: v.AccessToken,
 		}
 		allData = append(allData, tmp)
 	}

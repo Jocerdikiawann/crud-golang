@@ -2,6 +2,7 @@ package app
 
 import (
 	"belajar-golang-rest-api/controller"
+	"belajar-golang-rest-api/middlewares"
 	"belajar-golang-rest-api/models/response"
 	"net/http"
 
@@ -14,14 +15,24 @@ type routes struct {
 
 func NewRouter(usercontroller controller.UserController) routes {
 	r := routes{
-		router: gin.Default(),
+		router: gin.New(),
 	}
 
+	r.router.Use(gin.Logger())
+	r.router.Use(gin.Recovery())
+
 	v1 := r.router.Group("/v1")
-	r.addPing(usercontroller, v1)
-
+	{
+		userRoutes := v1.Group("users")
+		{
+			userRoutes.POST("/", usercontroller.Create)
+			userRoutes.GET("/:id", middlewares.MiddlewareAuth(), usercontroller.GetUser)
+			userRoutes.GET("/", usercontroller.GetUsers)
+			userRoutes.PUT("/:id", usercontroller.Update)
+			userRoutes.DELETE("/:id", usercontroller.Delete)
+		}
+	}
 	r.routeNotFound()
-
 	return r
 }
 
@@ -34,15 +45,6 @@ func (r routes) routeNotFound() {
 		}
 		c.IndentedJSON(res.StatusCode, res)
 	})
-}
-
-func (r routes) addPing(usercontroller controller.UserController, rg *gin.RouterGroup) {
-	ping := rg.Group("users")
-	ping.POST("/", usercontroller.Create)
-	ping.GET("/:id", usercontroller.GetUser)
-	ping.GET("/", usercontroller.GetUsers)
-	ping.PUT("/:id", usercontroller.Update)
-	ping.DELETE("/:id", usercontroller.Delete)
 }
 
 func (r routes) Run(addr ...string) error {

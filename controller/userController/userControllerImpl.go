@@ -1,20 +1,20 @@
-package controller
+package usercontroller
 
 import (
-	usersdomain "belajar-golang-rest-api/models/domain/users_domain"
-	"belajar-golang-rest-api/models/requests"
+	usersdomain "belajar-golang-rest-api/models/domain/usersDomain"
+	userrequests "belajar-golang-rest-api/models/requests/userRequests"
 	"belajar-golang-rest-api/models/response"
-	"belajar-golang-rest-api/services"
+	userservices "belajar-golang-rest-api/services/userServices"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 type UserControllerImpl struct {
-	service services.UserService
+	service userservices.UserService
 }
 
-func NewUserController(services services.UserService) UserController {
+func NewUserController(services userservices.UserService) UserController {
 	return &UserControllerImpl{
 		services,
 	}
@@ -96,7 +96,7 @@ func (controller *UserControllerImpl) GetUsers(c *gin.Context) {
 func (controller *UserControllerImpl) Update(c *gin.Context) {
 
 	id := c.Param("id")
-	var body requests.UserBody
+	var body userrequests.UserBody
 	var res response.WebResponse
 
 	if e := c.BindJSON(&body); e != nil {

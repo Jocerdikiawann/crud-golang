@@ -34,18 +34,6 @@ func MiddlewareAuth() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-
-		//if _, ok := token.Claims.(jwt.Claims); !ok && !token.Valid {
-		//	fmt.Println("ok")
-		//	res := response.WebResponse{
-		//		StatusCode: http.StatusUnauthorized,
-		//		Message:    "Unauthorized",
-		//		Data:       gin.H{},
-		//	}
-		//	c.JSON(res.StatusCode, res)
-		//	c.Abort()
-		//	return
-		//}
 		c.Next()
 	}
 }

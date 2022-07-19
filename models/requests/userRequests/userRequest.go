@@ -1,4 +1,4 @@
-package requests
+package userrequests
 
 type UserRequest struct {
 	Email       string `json:"email" bson:"email,omitempty"`

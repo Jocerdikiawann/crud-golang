@@ -1,10 +1,10 @@
-package repository
+package userrepositories
 
 import (
 	"belajar-golang-rest-api/middlewares"
-	usersdomain "belajar-golang-rest-api/models/domain/users_domain"
-	"belajar-golang-rest-api/models/requests"
-	"belajar-golang-rest-api/models/response"
+	usersdomain "belajar-golang-rest-api/models/domain/usersDomain"
+	userrequests "belajar-golang-rest-api/models/requests/userRequests"
+	userresponse "belajar-golang-rest-api/models/response/userResponse"
 	"belajar-golang-rest-api/utils"
 	"context"
 	"fmt"
@@ -21,7 +21,7 @@ func NewUserRepository() UserRepository {
 	return &UserRepositoryImpl{}
 }
 
-func (repo *UserRepositoryImpl) Create(ctx context.Context, db *mongo.Database, request requests.UserRequest) (usersdomain.User, error) {
+func (repo *UserRepositoryImpl) Create(ctx context.Context, db *mongo.Database, request userrequests.UserRequest) (usersdomain.User, error) {
 
 	//TODO: pake jwt
 	accessToken, errToken := middlewares.CreateToken(request.Email)
@@ -43,9 +43,9 @@ func (repo *UserRepositoryImpl) Create(ctx context.Context, db *mongo.Database, 
 	return userdomain, err
 }
 
-func (repo *UserRepositoryImpl) GetUser(ctx context.Context, db *mongo.Database, id string) (response.UserResponse, error) {
+func (repo *UserRepositoryImpl) GetUser(ctx context.Context, db *mongo.Database, id string) (userresponse.UserResponse, error) {
 
-	var data requests.UserRequest
+	var data userrequests.UserRequest
 
 	objId, err_ := primitive.ObjectIDFromHex(id)
 	utils.IfErrorHandler(err_)
@@ -59,7 +59,7 @@ func (repo *UserRepositoryImpl) GetUser(ctx context.Context, db *mongo.Database,
 	err := result.Decode(&data)
 	utils.IfErrorHandler(err)
 
-	userData := response.UserResponse{
+	userData := userresponse.UserResponse{
 		Id:          objId.Hex(),
 		Email:       data.Email,
 		FirstName:   data.FirstName,
@@ -71,10 +71,10 @@ func (repo *UserRepositoryImpl) GetUser(ctx context.Context, db *mongo.Database,
 	return userData, err
 }
 
-func (repo *UserRepositoryImpl) GetUsers(ctx context.Context, db *mongo.Database) ([]response.UserResponse, error) {
+func (repo *UserRepositoryImpl) GetUsers(ctx context.Context, db *mongo.Database) ([]userresponse.UserResponse, error) {
 
 	var data []usersdomain.User
-	var allData []response.UserResponse
+	var allData []userresponse.UserResponse
 
 	filter := bson.M{}
 
@@ -85,7 +85,7 @@ func (repo *UserRepositoryImpl) GetUsers(ctx context.Context, db *mongo.Database
 	utils.IfErrorHandler(err)
 
 	for _, v := range data {
-		tmp := response.UserResponse{
+		tmp := userresponse.UserResponse{
 			Id:          v.Id,
 			Email:       v.Email,
 			FirstName:   v.FirstName,
@@ -99,7 +99,7 @@ func (repo *UserRepositoryImpl) GetUsers(ctx context.Context, db *mongo.Database
 	return allData, errDb
 }
 
-func (repo *UserRepositoryImpl) Update(ctx context.Context, db *mongo.Database, filter bson.M, request requests.UserRequest) (bool, error) {
+func (repo *UserRepositoryImpl) Update(ctx context.Context, db *mongo.Database, filter bson.M, request userrequests.UserRequest) (bool, error) {
 
 	_, err := db.Collection("user").UpdateOne(ctx, filter, bson.M{"$set": request})
 

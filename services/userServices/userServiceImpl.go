@@ -1,10 +1,10 @@
-package services
+package userservices
 
 import (
-	usersdomain "belajar-golang-rest-api/models/domain/users_domain"
-	"belajar-golang-rest-api/models/requests"
-	"belajar-golang-rest-api/models/response"
-	"belajar-golang-rest-api/repository"
+	usersdomain "belajar-golang-rest-api/models/domain/usersDomain"
+	userrequests "belajar-golang-rest-api/models/requests/userRequests"
+	userresponse "belajar-golang-rest-api/models/response/userResponse"
+	userrepositories "belajar-golang-rest-api/repository/userRepositories"
 	"belajar-golang-rest-api/utils"
 	"context"
 
@@ -16,12 +16,12 @@ import (
 )
 
 type UserServiceImpl struct {
-	UserRepo repository.UserRepository
+	UserRepo userrepositories.UserRepository
 	Db       *mongo.Database
 	Validate *validator.Validate
 }
 
-func NewUserService(repo repository.UserRepository, Db *mongo.Database, validate *validator.Validate) UserService {
+func NewUserService(repo userrepositories.UserRepository, Db *mongo.Database, validate *validator.Validate) UserService {
 	return &UserServiceImpl{
 		UserRepo: repo,
 		Db:       Db,
@@ -38,7 +38,7 @@ func (c *UserServiceImpl) Create(ctx context.Context, req usersdomain.User) (use
 
 	utils.IfErrorHandler(errPass)
 
-	newdata := requests.UserRequest{
+	newdata := userrequests.UserRequest{
 		Email:     req.Email,
 		Password:  hashedPassword,
 		FirstName: req.FirstName,
@@ -50,17 +50,17 @@ func (c *UserServiceImpl) Create(ctx context.Context, req usersdomain.User) (use
 	return result, err
 }
 
-func (c *UserServiceImpl) GetUser(ctx context.Context, id string) (response.UserResponse, error) {
+func (c *UserServiceImpl) GetUser(ctx context.Context, id string) (userresponse.UserResponse, error) {
 	result, err := c.UserRepo.GetUser(ctx, c.Db, id)
 	return result, err
 }
 
-func (c *UserServiceImpl) GetUsers(ctx context.Context) ([]response.UserResponse, error) {
+func (c *UserServiceImpl) GetUsers(ctx context.Context) ([]userresponse.UserResponse, error) {
 	result, err := c.UserRepo.GetUsers(ctx, c.Db)
 	return result, err
 }
 
-func (c *UserServiceImpl) Update(ctx context.Context, request usersdomain.User) (response.UserResponse, error) {
+func (c *UserServiceImpl) Update(ctx context.Context, request usersdomain.User) (userresponse.UserResponse, error) {
 
 	password := []byte(request.Password)
 	hashedPassword, errPass := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
@@ -71,7 +71,7 @@ func (c *UserServiceImpl) Update(ctx context.Context, request usersdomain.User) 
 	filter := bson.M{
 		"_id": objectId,
 	}
-	updatedData := requests.UserRequest{
+	updatedData := userrequests.UserRequest{
 		Email:     request.Email,
 		Password:  hashedPassword,
 		FirstName: request.FirstName,
@@ -84,12 +84,12 @@ func (c *UserServiceImpl) Update(ctx context.Context, request usersdomain.User) 
 		return getNewData, errNewData
 	}
 
-	return response.UserResponse{}, err
+	return userresponse.UserResponse{}, err
 }
 
-func (c *UserServiceImpl) Delete(ctx context.Context, id string) ([]response.UserResponse, error) {
+func (c *UserServiceImpl) Delete(ctx context.Context, id string) ([]userresponse.UserResponse, error) {
 
-	var newDataUser []response.UserResponse
+	var newDataUser []userresponse.UserResponse
 
 	objId, errId := primitive.ObjectIDFromHex(id)
 	utils.IfErrorHandler(errId)

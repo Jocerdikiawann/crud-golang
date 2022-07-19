@@ -3,9 +3,9 @@ package main
 
 import (
 	"belajar-golang-rest-api/app"
-	"belajar-golang-rest-api/controller"
-	"belajar-golang-rest-api/repository"
-	"belajar-golang-rest-api/services"
+	usercontroller "belajar-golang-rest-api/controller/userController"
+	userrepositories "belajar-golang-rest-api/repository/userRepositories"
+	userservices "belajar-golang-rest-api/services/userServices"
 	"log"
 	"os"
 
@@ -29,9 +29,9 @@ func main() {
 	Db := app.DbConnect(dbUserName, dbPassword, dbName, dbHost, dbPort)
 	validate := validator.New()
 
-	userRepository := repository.NewUserRepository()
-	userService := services.NewUserService(userRepository, Db, validate)
-	userController := controller.NewUserController(userService)
+	userRepository := userrepositories.NewUserRepository()
+	userService := userservices.NewUserService(userRepository, Db, validate)
+	userController := usercontroller.NewUserController(userService)
 
 	router := app.NewRouter(userController)
 	router.Run(":8000")

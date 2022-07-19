@@ -1,4 +1,4 @@
-package response
+package userresponse
 
 type UserResponse struct {
 	Id          string `json:"_id" bson:"_id"`

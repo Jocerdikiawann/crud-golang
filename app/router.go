@@ -1,7 +1,7 @@
 package app
 
 import (
-	"belajar-golang-rest-api/controller"
+	usercontroller "belajar-golang-rest-api/controller/userController"
 	"belajar-golang-rest-api/middlewares"
 	"belajar-golang-rest-api/models/response"
 	"net/http"
@@ -13,7 +13,7 @@ type routes struct {
 	router *gin.Engine
 }
 
-func NewRouter(usercontroller controller.UserController) routes {
+func NewRouter(c usercontroller.UserController) routes {
 	r := routes{
 		router: gin.New(),
 	}
@@ -25,11 +25,11 @@ func NewRouter(usercontroller controller.UserController) routes {
 	{
 		userRoutes := v1.Group("users")
 		{
-			userRoutes.POST("/", usercontroller.Create)
-			userRoutes.GET("/:id", middlewares.MiddlewareAuth(), usercontroller.GetUser)
-			userRoutes.GET("/", usercontroller.GetUsers)
-			userRoutes.PUT("/:id", usercontroller.Update)
-			userRoutes.DELETE("/:id", usercontroller.Delete)
+			userRoutes.POST("/", c.Create)
+			userRoutes.GET("/:id", middlewares.MiddlewareAuth(), c.GetUser)
+			userRoutes.GET("/", c.GetUsers)
+			userRoutes.PUT("/:id", c.Update)
+			userRoutes.DELETE("/:id", c.Delete)
 		}
 	}
 	r.routeNotFound()

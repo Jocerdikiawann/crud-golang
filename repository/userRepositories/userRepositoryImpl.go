@@ -16,28 +16,40 @@ import (
 
 type UserRepositoryImpl struct{}
 
-//Init
+// Init
 func NewUserRepository() UserRepository {
 	return &UserRepositoryImpl{}
 }
 
-func (repo *UserRepositoryImpl) Create(ctx context.Context, db *mongo.Database, request userrequests.UserRequest) (usersdomain.User, error) {
+func (repo *UserRepositoryImpl) AuthSignIn(ctx context.Context, db *mongo.Database, request userrequests.AuthSignInRequest) (usersdomain.User, error) {
+	var data usersdomain.User
 
-	//TODO: pake jwt
+	filter := bson.M{
+		"email": request.Email,
+	}
+
+	result := db.Collection("user").FindOne(ctx, filter)
+
+	errDecode := result.Decode(&data)
+	utils.IfErrorHandler(errDecode)
+
 	accessToken, errToken := middlewares.CreateToken(request.Email)
 	utils.IfErrorHandler(errToken)
-	request.AccessToken = accessToken
-	fmt.Print(request)
+
+	data.AccessToken = accessToken
+	return data, errDecode
+}
+
+func (repo *UserRepositoryImpl) Create(ctx context.Context, db *mongo.Database, request userrequests.UserRequest) (userresponse.UserResponse, error) {
 	result, err := db.Collection("user").InsertOne(ctx, request)
 	utils.IfErrorHandler(err)
 
-	userdomain := usersdomain.User{
-		Id:          result.InsertedID.(primitive.ObjectID).Hex(),
-		Email:       request.Email,
-		FirstName:   request.FirstName,
-		LastName:    request.LastName,
-		Address:     request.Address,
-		AccessToken: accessToken,
+	userdomain := userresponse.UserResponse{
+		Id:        result.InsertedID.(primitive.ObjectID).Hex(),
+		Email:     request.Email,
+		FirstName: request.FirstName,
+		LastName:  request.LastName,
+		Address:   request.Address,
 	}
 
 	return userdomain, err

@@ -3,8 +3,11 @@ package main
 
 import (
 	"belajar-golang-rest-api/app"
+	categorycontroller "belajar-golang-rest-api/controller/categoryController"
 	usercontroller "belajar-golang-rest-api/controller/userController"
+	categoryrepositories "belajar-golang-rest-api/repository/categoryRepositories"
 	userrepositories "belajar-golang-rest-api/repository/userRepositories"
+	categoryservices "belajar-golang-rest-api/services/categoryServices"
 	userservices "belajar-golang-rest-api/services/userServices"
 	"log"
 	"os"
@@ -33,6 +36,10 @@ func main() {
 	userService := userservices.NewUserService(userRepository, Db, validate)
 	userController := usercontroller.NewUserController(userService)
 
-	router := app.NewRouter(userController)
+	categoryRepository := categoryrepositories.NewCategoryRepository()
+	categoryService := categoryservices.NewCategoryService(categoryRepository, Db, validate)
+	categoryController := categorycontroller.NewCategoryController(categoryService)
+
+	router := app.NewRouter(userController, categoryController)
 	router.Run(":8000")
 }

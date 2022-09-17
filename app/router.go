@@ -1,6 +1,7 @@
 package app
 
 import (
+	categorycontroller "belajar-golang-rest-api/controller/categoryController"
 	usercontroller "belajar-golang-rest-api/controller/userController"
 	"belajar-golang-rest-api/middlewares"
 	"belajar-golang-rest-api/models/response"
@@ -13,7 +14,7 @@ type routes struct {
 	router *gin.Engine
 }
 
-func NewRouter(c usercontroller.UserController) routes {
+func NewRouter(user usercontroller.UserController, category categorycontroller.CategoryController) routes {
 	r := routes{
 		router: gin.New(),
 	}
@@ -25,11 +26,20 @@ func NewRouter(c usercontroller.UserController) routes {
 	{
 		userRoutes := v1.Group("users")
 		{
-			userRoutes.POST("/", c.Create)
-			userRoutes.GET("/:id", middlewares.MiddlewareAuth(), c.GetUser)
-			userRoutes.GET("/", c.GetUsers)
-			userRoutes.PUT("/:id", c.Update)
-			userRoutes.DELETE("/:id", c.Delete)
+			userRoutes.POST("/auth", user.AuthSignIn)
+			userRoutes.POST("/", user.Create)
+			userRoutes.GET("/:id", middlewares.MiddlewareAuth(), user.GetUser)
+			userRoutes.GET("/", middlewares.MiddlewareAuth(), user.GetUsers)
+			userRoutes.PUT("/:id", middlewares.MiddlewareAuth(), user.Update)
+			userRoutes.DELETE("/:id", middlewares.MiddlewareAuth(), user.Delete)
+		}
+		categoryRoutes := v1.Group("category").Use(middlewares.MiddlewareAuth())
+		{
+			categoryRoutes.POST("/", category.Create)
+			categoryRoutes.GET("/:id", category.GetCategory)
+			categoryRoutes.GET("/", category.GetCategories)
+			categoryRoutes.PUT("/:id", category.Update)
+			categoryRoutes.DELETE("/:id", category.Delete)
 		}
 	}
 	r.routeNotFound()

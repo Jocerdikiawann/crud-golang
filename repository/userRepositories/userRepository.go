@@ -11,7 +11,8 @@ import (
 )
 
 type UserRepository interface {
-	Create(ctx context.Context, db *mongo.Database, request userrequests.UserRequest) (usersdomain.User, error)
+	AuthSignIn(ctx context.Context, db *mongo.Database, request userrequests.AuthSignInRequest) (usersdomain.User, error)
+	Create(ctx context.Context, db *mongo.Database, request userrequests.UserRequest) (userresponse.UserResponse, error)
 	GetUser(ctx context.Context, db *mongo.Database, id string) (userresponse.UserResponse, error)
 	GetUsers(ctx context.Context, db *mongo.Database) ([]userresponse.UserResponse, error)
 	Update(ctx context.Context, db *mongo.Database, filter bson.M, request userrequests.UserRequest) (bool, error)

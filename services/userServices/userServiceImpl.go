@@ -7,6 +7,7 @@ import (
 	userrepositories "belajar-golang-rest-api/repository/userRepositories"
 	"belajar-golang-rest-api/utils"
 	"context"
+	"errors"
 
 	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson"
@@ -29,7 +30,24 @@ func NewUserService(repo userrepositories.UserRepository, Db *mongo.Database, va
 	}
 }
 
-func (c *UserServiceImpl) Create(ctx context.Context, req usersdomain.User) (usersdomain.User, error) {
+func (c *UserServiceImpl) AuthSignIn(ctx context.Context, req userrequests.AuthSignInRequest) (usersdomain.User, error) {
+
+	errValidate := c.Validate.Struct(req)
+	utils.IfErrorHandler(errValidate)
+
+	userData, err := c.UserRepo.AuthSignIn(ctx, c.Db, req)
+
+	reqPassword := []byte(req.Password)
+
+	errComparePassword := bcrypt.CompareHashAndPassword(userData.Password, reqPassword)
+
+	if errComparePassword != nil {
+		return userData, errors.New("Wrong email or password")
+	}
+	return userData, err
+}
+
+func (c *UserServiceImpl) Create(ctx context.Context, req userrequests.UserRequest) (userresponse.UserResponse, error) {
 	errvalidate := c.Validate.Struct(req)
 	utils.IfErrorHandler(errvalidate)
 
@@ -60,13 +78,13 @@ func (c *UserServiceImpl) GetUsers(ctx context.Context) ([]userresponse.UserResp
 	return result, err
 }
 
-func (c *UserServiceImpl) Update(ctx context.Context, request usersdomain.User) (userresponse.UserResponse, error) {
+func (c *UserServiceImpl) Update(ctx context.Context, request userrequests.UserBody, id string) (userresponse.UserResponse, error) {
 
 	password := []byte(request.Password)
 	hashedPassword, errPass := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
 	utils.IfErrorHandler(errPass)
 
-	objectId, _ := primitive.ObjectIDFromHex(request.Id)
+	objectId, _ := primitive.ObjectIDFromHex(id)
 
 	filter := bson.M{
 		"_id": objectId,
@@ -80,7 +98,7 @@ func (c *UserServiceImpl) Update(ctx context.Context, request usersdomain.User) 
 	}
 	result, err := c.UserRepo.Update(ctx, c.Db, filter, updatedData)
 	if result {
-		getNewData, errNewData := c.UserRepo.GetUser(ctx, c.Db, request.Id)
+		getNewData, errNewData := c.UserRepo.GetUser(ctx, c.Db, id)
 		return getNewData, errNewData
 	}
 

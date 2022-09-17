@@ -1,10 +1,10 @@
 package usercontroller
 
 import (
-	usersdomain "belajar-golang-rest-api/models/domain/usersDomain"
 	userrequests "belajar-golang-rest-api/models/requests/userRequests"
 	"belajar-golang-rest-api/models/response"
 	userservices "belajar-golang-rest-api/services/userServices"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -20,33 +20,68 @@ func NewUserController(services userservices.UserService) UserController {
 	}
 }
 
-func (controller *UserControllerImpl) Create(c *gin.Context) {
-	var body usersdomain.User
-	var responseJson response.WebResponse
-	if e := c.BindJSON(&body); e != nil {
-		responseJson = response.WebResponse{
+func (c *UserControllerImpl) AuthSignIn(ctx *gin.Context) {
+	var payload userrequests.AuthSignInRequest
+
+	e := ctx.BindJSON(&payload)
+
+	if e != nil {
+		ctx.IndentedJSON(http.StatusBadRequest, response.WebResponse{
 			StatusCode: http.StatusBadRequest,
 			Message:    e.Error(),
 			Data:       gin.H{},
-		}
-	} else {
-		data, err := controller.service.Create(c.Request.Context(), body)
-		if err != nil {
-			responseJson = response.WebResponse{
-				StatusCode: http.StatusNotFound,
-				Message:    err.Error(),
-				Data:       gin.H{},
-			}
-		} else {
-			responseJson = response.WebResponse{
-				StatusCode: http.StatusCreated,
-				Message:    "Ok",
-				Data:       data,
-			}
-		}
+		})
+		return
 	}
 
-	c.IndentedJSON(http.StatusCreated, responseJson)
+	data, err := c.service.AuthSignIn(ctx.Request.Context(), payload)
+	fmt.Println(data)
+	fmt.Println(err)
+
+	if err != nil {
+		ctx.IndentedJSON(http.StatusBadRequest, response.WebResponse{
+			StatusCode: http.StatusBadRequest,
+			Message:    err.Error(),
+			Data:       gin.H{},
+		})
+		return
+	}
+
+	ctx.IndentedJSON(http.StatusOK, response.WebResponse{
+		StatusCode: http.StatusOK,
+		Message:    "Ok",
+		Data:       data,
+	})
+	return
+}
+
+func (controller *UserControllerImpl) Create(c *gin.Context) {
+	var body userrequests.UserRequest
+
+	if e := c.BindJSON(&body); e != nil {
+		c.IndentedJSON(http.StatusBadRequest, response.WebResponse{
+			StatusCode: http.StatusBadRequest,
+			Message:    e.Error(),
+			Data:       gin.H{},
+		})
+		return
+	}
+
+	data, err := controller.service.Create(c.Request.Context(), body)
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, response.WebResponse{
+			StatusCode: http.StatusBadRequest,
+			Message:    err.Error(),
+			Data:       gin.H{},
+		})
+		return
+	}
+
+	c.IndentedJSON(http.StatusCreated, response.WebResponse{
+		StatusCode: http.StatusCreated,
+		Message:    "Ok",
+		Data:       data,
+	})
 }
 
 func (controller *UserControllerImpl) GetUser(c *gin.Context) {
@@ -106,15 +141,7 @@ func (controller *UserControllerImpl) Update(c *gin.Context) {
 			Data:       gin.H{},
 		}
 	} else {
-		req := usersdomain.User{
-			Id:        id,
-			Email:     body.Email,
-			Password:  body.Password,
-			FirstName: body.FirstName,
-			LastName:  body.LastName,
-			Address:   body.Address,
-		}
-		data, err := controller.service.Update(c.Request.Context(), req)
+		data, err := controller.service.Update(c.Request.Context(), body, id)
 		if err != nil {
 			res = response.WebResponse{
 				StatusCode: http.StatusBadRequest,

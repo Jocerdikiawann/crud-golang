@@ -4,13 +4,10 @@ import (
 	"belajar-golang-rest-api/models/response"
 	"belajar-golang-rest-api/models/user"
 	userrepositories "belajar-golang-rest-api/repository/userRepositories"
-	"belajar-golang-rest-api/utils"
-	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -65,18 +62,11 @@ func (c *UserServiceImpl) Create(ctx *gin.Context) response.Response {
 
 	errJson := ctx.BindJSON(&req)
 
-	password := []byte(req.Password)
-	hashedPassword, errPass := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
+	hashedPassword, errPass := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 
-	newdata := user.AuthSignUp{
-		Email:     req.Email,
-		Password:  string(hashedPassword),
-		FirstName: req.FirstName,
-		LastName:  req.LastName,
-		Address:   req.Address,
-	}
+	req.Password = string(hashedPassword)
 
-	result, errData := c.UserRepo.Create(ctx, c.Db, newdata)
+	result, errData := c.UserRepo.Create(ctx, c.Db, req)
 
 	if errJson != nil {
 		return response.Response{
@@ -111,7 +101,7 @@ func (c *UserServiceImpl) Create(ctx *gin.Context) response.Response {
 
 func (c *UserServiceImpl) GetUser(ctx *gin.Context) response.Response {
 
-	id := ctx.Param("id")
+	id := string(ctx.MustGet("_id").(string))
 
 	result, err := c.UserRepo.GetUser(ctx, c.Db, id)
 
@@ -150,7 +140,7 @@ func (c *UserServiceImpl) GetUsers(ctx *gin.Context) response.Response {
 
 func (c *UserServiceImpl) Update(ctx *gin.Context) response.Response {
 
-	id := ctx.Param("id")
+	id := string(ctx.MustGet("_id").(string))
 
 	var req user.AuthSignUp
 
@@ -158,21 +148,12 @@ func (c *UserServiceImpl) Update(ctx *gin.Context) response.Response {
 
 	password := []byte(req.Password)
 	hashedPassword, errPass := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
-	utils.IfErrorHandler(errPass)
 
-	objectId, _ := primitive.ObjectIDFromHex(id)
+	req.Password = string(hashedPassword)
 
-	filter := bson.M{
-		"_id": objectId,
-	}
-	updatedData := userrequests.UserRequest{
-		Email:     request.Email,
-		Password:  hashedPassword,
-		FirstName: request.FirstName,
-		LastName:  request.LastName,
-		Address:   request.Address,
-	}
-	result, err := c.UserRepo.Update(ctx, c.Db, filter, updatedData)
+	fmt.Printf("Password %v", req.Password)
+
+	result, err := c.UserRepo.Update(ctx, c.Db, id, req)
 
 	if errJson != nil {
 		return response.Response{
@@ -181,30 +162,64 @@ func (c *UserServiceImpl) Update(ctx *gin.Context) response.Response {
 			Data:       gin.H{},
 		}
 	}
-	
+
+	if errPass != nil {
+		return response.Response{
+			StatusCode: http.StatusBadRequest,
+			Message:    errPass.Error(),
+			Data:       gin.H{},
+		}
+	}
+
+	if err != nil {
+		return response.Response{
+			StatusCode: http.StatusBadRequest,
+			Message:    err.Error(),
+			Data:       gin.H{},
+		}
+	}
+
 	if result {
 		getNewData, errNewData := c.UserRepo.GetUser(ctx, c.Db, id)
-		return getNewData, errNewData
+		if errNewData != nil {
+			return response.Response{
+				StatusCode: http.StatusBadRequest,
+				Message:    errNewData.Error(),
+				Data:       gin.H{},
+			}
+		}
+		return response.Response{
+			StatusCode: http.StatusOK,
+			Message:    "ok",
+			Data:       getNewData,
+		}
 	}
-
-	return userresponse.UserResponse{}, err
+	return response.Response{
+		StatusCode: http.StatusOK,
+		Message:    "ok",
+		Data:       []string{},
+	}
 }
 
-func (c *UserServiceImpl) Delete(ctx context.Context, id string) ([]userresponse.UserResponse, error) {
+func (c *UserServiceImpl) Delete(ctx *gin.Context) response.Response {
 
-	var newDataUser []userresponse.UserResponse
+	id := string(ctx.MustGet("_id").(string))
 
-	objId, errId := primitive.ObjectIDFromHex(id)
-	utils.IfErrorHandler(errId)
+	result, err := c.UserRepo.Delete(ctx, c.Db, id)
 
-	filter := bson.M{
-		"_id": objId,
+	if err != nil || !result {
+		return response.Response{
+			StatusCode: http.StatusNotFound,
+			Message:    err.Error(),
+			Data:       gin.H{},
+		}
 	}
 
-	result, err := c.UserRepo.Delete(ctx, c.Db, filter)
-	if result {
-		newDataUser, _ = c.UserRepo.GetUsers(ctx, c.Db)
-		return newDataUser, err
+	res, _ := c.UserRepo.GetUsers(ctx, c.Db)
+
+	return response.Response{
+		StatusCode: http.StatusOK,
+		Message:    "ok",
+		Data:       res,
 	}
-	return newDataUser, err
 }

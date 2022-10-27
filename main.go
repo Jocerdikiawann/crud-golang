@@ -3,11 +3,8 @@ package main
 
 import (
 	"belajar-golang-rest-api/app"
-	categorycontroller "belajar-golang-rest-api/controller/categoryController"
 	usercontroller "belajar-golang-rest-api/controller/userController"
-	categoryrepositories "belajar-golang-rest-api/repository/categoryRepositories"
 	userrepositories "belajar-golang-rest-api/repository/userRepositories"
-	categoryservices "belajar-golang-rest-api/services/categoryServices"
 	userservices "belajar-golang-rest-api/services/userServices"
 	"fmt"
 	"log"
@@ -34,14 +31,14 @@ func main() {
 	Db := app.DbConnect(dbUserName, dbPassword, dbName, dbHost, dbPort)
 	validate := validator.New()
 
-	userRepository := userrepositories.NewUserRepository()
-	userService := userservices.NewUserService(userRepository, Db, validate)
+	userRepository := userrepositories.NewUserRepository(validate)
+	userService := userservices.NewUserService(userRepository, Db)
 	userController := usercontroller.NewUserController(userService)
 
-	categoryRepository := categoryrepositories.NewCategoryRepository()
-	categoryService := categoryservices.NewCategoryService(categoryRepository, Db, validate)
-	categoryController := categorycontroller.NewCategoryController(categoryService)
+	// categoryRepository := categoryrepositories.NewCategoryRepository()
+	// categoryService := categoryservices.NewCategoryService(categoryRepository, Db, validate)
+	// categoryController := categorycontroller.NewCategoryController()
 
-	router := app.NewRouter(userController, categoryController)
+	router := app.NewRouter(userController)
 	router.Run(apiPort)
 }

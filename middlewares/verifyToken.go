@@ -15,7 +15,7 @@ import (
 func MiddlewareAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		res := response.WebResponse{
+		res := response.Response{
 			StatusCode: http.StatusUnauthorized,
 			Message:    "Unauthorized",
 			Data:       gin.H{},
@@ -24,9 +24,11 @@ func MiddlewareAuth() gin.HandlerFunc {
 		header := c.GetHeader("Authorization")
 		bearerToken := strings.Split(header, " ")
 
+		fmt.Println(bearerToken)
+
 		if len(bearerToken) == 2 {
 
-			token, _ := jwt.Parse(header, func(t *jwt.Token) (interface{}, error) {
+			token, _ := jwt.Parse(bearerToken[1], func(t *jwt.Token) (interface{}, error) {
 				if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 					return nil, fmt.Errorf("unexpected signing method %v", t.Header["alg"])
 				}
@@ -35,6 +37,7 @@ func MiddlewareAuth() gin.HandlerFunc {
 
 			if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 				c.Set("_id", claims["_id"])
+				// fmt.Printf("token %v", token)
 			} else {
 
 				c.JSON(res.StatusCode, res)

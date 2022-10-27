@@ -12,20 +12,18 @@ import (
 )
 
 func DbConnect(usernameDb, passwordDb, nameDb, hostDb, portDb string) *mongo.Database {
-	uri := fmt.Sprintf("mongodb://localhost:%v", portDb)
-
-	fmt.Println("mongo url: ", uri)
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	_ = cancel
+	uri := fmt.Sprintf("mongodb://%s:%v", hostDb, portDb)
 
 	credential := options.Credential{
-		AuthMechanism: "SCRAM-SHA-256",
-		AuthSource:    "admin",
-		Username:      usernameDb,
-		Password:      passwordDb,
+		Username: usernameDb,
+		Password: passwordDb,
 	}
 
-	clientOptions := options.Client().ApplyURI(uri).SetAuth(credential)
+	fmt.Println("mongo url: ", uri)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	clientOptions := options.Client().ApplyURI(uri).SetAuth(credential).SetMaxPoolSize(100).SetMinPoolSize(20)
 	client, err := mongo.NewClient(clientOptions)
 	utils.IfErrorHandler(err)
 

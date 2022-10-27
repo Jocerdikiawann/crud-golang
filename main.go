@@ -9,6 +9,7 @@ import (
 	userrepositories "belajar-golang-rest-api/repository/userRepositories"
 	categoryservices "belajar-golang-rest-api/services/categoryServices"
 	userservices "belajar-golang-rest-api/services/userServices"
+	"fmt"
 	"log"
 	"os"
 
@@ -28,6 +29,7 @@ func main() {
 	dbPort := os.Getenv("MONGO_PORT")
 	dbName := os.Getenv("MONGO_DB_NAME")
 	dbHost := os.Getenv("MONGO_HOST")
+	apiPort := fmt.Sprintf(":%v", os.Getenv("API_PORT"))
 
 	Db := app.DbConnect(dbUserName, dbPassword, dbName, dbHost, dbPort)
 	validate := validator.New()
@@ -41,5 +43,5 @@ func main() {
 	categoryController := categorycontroller.NewCategoryController(categoryService)
 
 	router := app.NewRouter(userController, categoryController)
-	router.Run(":8000")
+	router.Run(apiPort)
 }

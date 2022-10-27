@@ -2,30 +2,35 @@ package userrepositories
 
 import (
 	"belajar-golang-rest-api/middlewares"
-	usersdomain "belajar-golang-rest-api/models/domain/usersDomain"
-	userrequests "belajar-golang-rest-api/models/requests/userRequests"
-	userresponse "belajar-golang-rest-api/models/response/userResponse"
+	"belajar-golang-rest-api/models/user"
 	"belajar-golang-rest-api/utils"
 	"context"
-	"fmt"
 
+	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type UserRepositoryImpl struct{}
-
-// Init
-func NewUserRepository() UserRepository {
-	return &UserRepositoryImpl{}
+type UserRepositoryImpl struct {
+	Validate *validator.Validate
 }
 
-func (repo *UserRepositoryImpl) AuthSignIn(ctx context.Context, db *mongo.Database, request userrequests.AuthSignInRequest) (usersdomain.User, error) {
-	var data usersdomain.User
+// Init
+func NewUserRepository(validate *validator.Validate) UserRepository {
+	return &UserRepositoryImpl{
+		Validate: validate,
+	}
+}
+
+func (repo *UserRepositoryImpl) AuthSignIn(ctx context.Context, db *mongo.Database, req user.AuthSignIn) (user.User, error) {
+	var data user.User
+
+	errValidate := repo.Validate.Struct(req)
+	utils.IfErrorHandler(errValidate)
 
 	filter := bson.M{
-		"email": request.Email,
+		"email": req.Email,
 	}
 
 	result := db.Collection("user").FindOne(ctx, filter)
@@ -33,34 +38,43 @@ func (repo *UserRepositoryImpl) AuthSignIn(ctx context.Context, db *mongo.Databa
 	errDecode := result.Decode(&data)
 	utils.IfErrorHandler(errDecode)
 
-	accessToken, errToken := middlewares.CreateToken(request.Email)
+	accessToken, errToken := middlewares.CreateToken(data.Id)
 	utils.IfErrorHandler(errToken)
 
 	data.AccessToken = accessToken
 	return data, errDecode
 }
 
-func (repo *UserRepositoryImpl) Create(ctx context.Context, db *mongo.Database, request userrequests.UserRequest) (userresponse.UserResponse, error) {
-	result, err := db.Collection("user").InsertOne(ctx, request)
+func (repo *UserRepositoryImpl) Create(ctx context.Context, db *mongo.Database, req user.AuthSignUp) (user.User, error) {
+	errvalidate := repo.Validate.Struct(req)
+	utils.IfErrorHandler(errvalidate)
+
+	result, err := db.Collection("user").InsertOne(ctx, req)
 	utils.IfErrorHandler(err)
 
-	userdomain := userresponse.UserResponse{
-		Id:        result.InsertedID.(primitive.ObjectID).Hex(),
-		Email:     request.Email,
-		FirstName: request.FirstName,
-		LastName:  request.LastName,
-		Address:   request.Address,
+	id := result.InsertedID.(primitive.ObjectID).Hex()
+
+	accessToken, errToken := middlewares.CreateToken(id)
+	utils.IfErrorHandler(errToken)
+
+	createdUser := user.User{
+		Id:          id,
+		Email:       req.Email,
+		FirstName:   req.FirstName,
+		LastName:    req.LastName,
+		Address:     req.Address,
+		AccessToken: accessToken,
 	}
 
-	return userdomain, err
+	return createdUser, err
 }
 
-func (repo *UserRepositoryImpl) GetUser(ctx context.Context, db *mongo.Database, id string) (userresponse.UserResponse, error) {
+func (repo *UserRepositoryImpl) GetUser(ctx context.Context, db *mongo.Database, id string) (user.User, error) {
 
-	var data userrequests.UserRequest
+	var data user.User
 
-	objId, err_ := primitive.ObjectIDFromHex(id)
-	utils.IfErrorHandler(err_)
+	objId, errId := primitive.ObjectIDFromHex(id)
+	utils.IfErrorHandler(errId)
 
 	filter := bson.M{
 		"_id": objId,
@@ -71,22 +85,21 @@ func (repo *UserRepositoryImpl) GetUser(ctx context.Context, db *mongo.Database,
 	err := result.Decode(&data)
 	utils.IfErrorHandler(err)
 
-	userData := userresponse.UserResponse{
-		Id:          objId.Hex(),
-		Email:       data.Email,
-		FirstName:   data.FirstName,
-		LastName:    data.LastName,
-		Address:     data.Address,
-		AccessToken: data.AccessToken,
+	userData := user.User{
+		Id:        objId.Hex(),
+		Email:     data.Email,
+		FirstName: data.FirstName,
+		LastName:  data.LastName,
+		Address:   data.Address,
 	}
 
 	return userData, err
 }
 
-func (repo *UserRepositoryImpl) GetUsers(ctx context.Context, db *mongo.Database) ([]userresponse.UserResponse, error) {
+func (repo *UserRepositoryImpl) GetUsers(ctx context.Context, db *mongo.Database) ([]user.User, error) {
 
-	var data []usersdomain.User
-	var allData []userresponse.UserResponse
+	var data []user.User
+	var newData []user.User
 
 	filter := bson.M{}
 
@@ -97,25 +110,30 @@ func (repo *UserRepositoryImpl) GetUsers(ctx context.Context, db *mongo.Database
 	utils.IfErrorHandler(err)
 
 	for _, v := range data {
-		tmp := userresponse.UserResponse{
-			Id:          v.Id,
-			Email:       v.Email,
-			FirstName:   v.FirstName,
-			LastName:    v.LastName,
-			Address:     v.Address,
-			AccessToken: v.AccessToken,
+		tmp := user.User{
+			Id:        v.Id,
+			Email:     v.Email,
+			FirstName: v.FirstName,
+			LastName:  v.LastName,
+			Address:   v.Address,
 		}
-		allData = append(allData, tmp)
+		newData = append(newData, tmp)
 	}
 
-	return allData, errDb
+	return newData, errDb
 }
 
-func (repo *UserRepositoryImpl) Update(ctx context.Context, db *mongo.Database, filter bson.M, request userrequests.UserRequest) (bool, error) {
+func (repo *UserRepositoryImpl) Update(ctx context.Context, db *mongo.Database, id string, req user.AuthSignUp) (bool, error) {
 
-	_, err := db.Collection("user").UpdateOne(ctx, filter, bson.M{"$set": request})
+	objId, errId := primitive.ObjectIDFromHex(id)
+	utils.IfErrorHandler(errId)
 
-	fmt.Println(err)
+	_, err := db.Collection("user").UpdateOne(
+		ctx,
+		bson.M{"_id": objId},
+		bson.M{"$set": req},
+	)
+
 	if err != nil {
 		return false, err
 	}
@@ -123,8 +141,11 @@ func (repo *UserRepositoryImpl) Update(ctx context.Context, db *mongo.Database, 
 	return true, err
 }
 
-func (repo *UserRepositoryImpl) Delete(ctx context.Context, db *mongo.Database, filter bson.M) (bool, error) {
-	res, err := db.Collection("user").DeleteOne(ctx, filter)
+func (repo *UserRepositoryImpl) Delete(ctx context.Context, db *mongo.Database, id string) (bool, error) {
+	objId, errId := primitive.ObjectIDFromHex(id)
+	utils.IfErrorHandler(errId)
+
+	res, err := db.Collection("user").DeleteOne(ctx, bson.M{"_id": objId})
 	if res.DeletedCount == 0 {
 		return false, err
 	}

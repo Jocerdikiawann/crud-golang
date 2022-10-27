@@ -18,6 +18,7 @@ func NewRouter(user usercontroller.UserController, category categorycontroller.C
 	r := routes{
 		router: gin.New(),
 	}
+	r.router.RedirectTrailingSlash = false
 
 	r.router.Use(gin.Logger())
 	r.router.Use(gin.Recovery())

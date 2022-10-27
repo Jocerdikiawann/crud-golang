@@ -1,9 +1,9 @@
 package utils
 
-import "fmt"
+import "log"
 
 func IfErrorHandler(err error) {
 	if err != nil {
-		fmt.Println("Error : ", err)
+		log.Fatal(err)
 	}
 }

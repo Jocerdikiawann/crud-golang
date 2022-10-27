@@ -1,15 +1,14 @@
 package userservices
 
 import (
-	usersdomain "belajar-golang-rest-api/models/domain/usersDomain"
-	userrequests "belajar-golang-rest-api/models/requests/userRequests"
-	userresponse "belajar-golang-rest-api/models/response/userResponse"
+	"belajar-golang-rest-api/models/response"
+	"belajar-golang-rest-api/models/user"
 	userrepositories "belajar-golang-rest-api/repository/userRepositories"
 	"belajar-golang-rest-api/utils"
 	"context"
-	"errors"
+	"net/http"
 
-	"github.com/go-playground/validator/v10"
+	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -19,68 +18,145 @@ import (
 type UserServiceImpl struct {
 	UserRepo userrepositories.UserRepository
 	Db       *mongo.Database
-	Validate *validator.Validate
 }
 
-func NewUserService(repo userrepositories.UserRepository, Db *mongo.Database, validate *validator.Validate) UserService {
+func NewUserService(repo userrepositories.UserRepository, Db *mongo.Database) UserService {
 	return &UserServiceImpl{
 		UserRepo: repo,
 		Db:       Db,
-		Validate: validate,
 	}
 }
 
-func (c *UserServiceImpl) AuthSignIn(ctx context.Context, req userrequests.AuthSignInRequest) (usersdomain.User, error) {
+func (c *UserServiceImpl) AuthSignIn(ctx *gin.Context) response.Response {
 
-	errValidate := c.Validate.Struct(req)
-	utils.IfErrorHandler(errValidate)
+	var payload user.AuthSignIn
 
-	userData, err := c.UserRepo.AuthSignIn(ctx, c.Db, req)
+	err := ctx.BindJSON(&payload)
 
-	reqPassword := []byte(req.Password)
+	userData, _ := c.UserRepo.AuthSignIn(ctx, c.Db, payload)
 
-	errComparePassword := bcrypt.CompareHashAndPassword(userData.Password, reqPassword)
+	errComparePassword := bcrypt.CompareHashAndPassword([]byte(userData.Password), []byte(payload.Password))
 
 	if errComparePassword != nil {
-		return userData, errors.New("Wrong email or password")
+		return response.Response{
+			StatusCode: http.StatusNotFound,
+			Message:    "Wrong email or password",
+			Data:       gin.H{},
+		}
 	}
-	return userData, err
+
+	if err != nil {
+		return response.Response{
+			StatusCode: http.StatusBadRequest,
+			Message:    err.Error(),
+			Data:       gin.H{},
+		}
+	}
+
+	return response.Response{
+		StatusCode: http.StatusOK,
+		Message:    "ok",
+		Data:       userData,
+	}
 }
 
-func (c *UserServiceImpl) Create(ctx context.Context, req userrequests.UserRequest) (userresponse.UserResponse, error) {
-	errvalidate := c.Validate.Struct(req)
-	utils.IfErrorHandler(errvalidate)
+func (c *UserServiceImpl) Create(ctx *gin.Context) response.Response {
+	var req user.AuthSignUp
+
+	errJson := ctx.BindJSON(&req)
 
 	password := []byte(req.Password)
 	hashedPassword, errPass := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
 
-	utils.IfErrorHandler(errPass)
-
-	newdata := userrequests.UserRequest{
+	newdata := user.AuthSignUp{
 		Email:     req.Email,
-		Password:  hashedPassword,
+		Password:  string(hashedPassword),
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
 		Address:   req.Address,
 	}
 
-	result, err := c.UserRepo.Create(ctx, c.Db, newdata)
-	return result, err
+	result, errData := c.UserRepo.Create(ctx, c.Db, newdata)
+
+	if errJson != nil {
+		return response.Response{
+			StatusCode: http.StatusBadRequest,
+			Message:    errJson.Error(),
+			Data:       gin.H{},
+		}
+	}
+
+	if errPass != nil {
+		return response.Response{
+			StatusCode: http.StatusBadRequest,
+			Message:    errPass.Error(),
+			Data:       gin.H{},
+		}
+	}
+
+	if errData != nil {
+		return response.Response{
+			StatusCode: http.StatusBadRequest,
+			Message:    errData.Error(),
+			Data:       gin.H{},
+		}
+	}
+
+	return response.Response{
+		StatusCode: http.StatusCreated,
+		Message:    "ok",
+		Data:       result,
+	}
 }
 
-func (c *UserServiceImpl) GetUser(ctx context.Context, id string) (userresponse.UserResponse, error) {
+func (c *UserServiceImpl) GetUser(ctx *gin.Context) response.Response {
+
+	id := ctx.Param("id")
+
 	result, err := c.UserRepo.GetUser(ctx, c.Db, id)
-	return result, err
+
+	if err != nil {
+		return response.Response{
+			StatusCode: http.StatusNotFound,
+			Message:    "Account not found",
+			Data:       gin.H{},
+		}
+	}
+
+	return response.Response{
+		StatusCode: http.StatusOK,
+		Message:    "ok",
+		Data:       result,
+	}
 }
 
-func (c *UserServiceImpl) GetUsers(ctx context.Context) ([]userresponse.UserResponse, error) {
+func (c *UserServiceImpl) GetUsers(ctx *gin.Context) response.Response {
 	result, err := c.UserRepo.GetUsers(ctx, c.Db)
-	return result, err
+
+	if err != nil {
+		return response.Response{
+			StatusCode: http.StatusNotFound,
+			Message:    "Account not found",
+			Data:       gin.H{},
+		}
+	}
+
+	return response.Response{
+		StatusCode: http.StatusOK,
+		Message:    "ok",
+		Data:       result,
+	}
 }
 
-func (c *UserServiceImpl) Update(ctx context.Context, request userrequests.UserBody, id string) (userresponse.UserResponse, error) {
+func (c *UserServiceImpl) Update(ctx *gin.Context) response.Response {
 
-	password := []byte(request.Password)
+	id := ctx.Param("id")
+
+	var req user.AuthSignUp
+
+	errJson := ctx.BindJSON(&req)
+
+	password := []byte(req.Password)
 	hashedPassword, errPass := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
 	utils.IfErrorHandler(errPass)
 
@@ -97,6 +173,15 @@ func (c *UserServiceImpl) Update(ctx context.Context, request userrequests.UserB
 		Address:   request.Address,
 	}
 	result, err := c.UserRepo.Update(ctx, c.Db, filter, updatedData)
+
+	if errJson != nil {
+		return response.Response{
+			StatusCode: http.StatusBadRequest,
+			Message:    errJson.Error(),
+			Data:       gin.H{},
+		}
+	}
+	
 	if result {
 		getNewData, errNewData := c.UserRepo.GetUser(ctx, c.Db, id)
 		return getNewData, errNewData

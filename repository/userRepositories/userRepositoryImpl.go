@@ -6,28 +6,22 @@ import (
 	"belajar-golang-rest-api/utils"
 	"context"
 
-	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type UserRepositoryImpl struct {
-	Validate *validator.Validate
 }
 
 // Init
-func NewUserRepository(validate *validator.Validate) UserRepository {
-	return &UserRepositoryImpl{
-		Validate: validate,
-	}
+func NewUserRepository() UserRepository {
+	return &UserRepositoryImpl{}
 }
 
 func (repo *UserRepositoryImpl) AuthSignIn(ctx context.Context, db *mongo.Database, req user.AuthSignIn) (user.User, error) {
 	var data user.User
-
-	errValidate := repo.Validate.Struct(req)
-	utils.IfErrorHandler(errValidate)
 
 	filter := bson.M{
 		"email": req.Email,
@@ -46,10 +40,19 @@ func (repo *UserRepositoryImpl) AuthSignIn(ctx context.Context, db *mongo.Databa
 }
 
 func (repo *UserRepositoryImpl) Create(ctx context.Context, db *mongo.Database, req user.AuthSignUp) (user.User, error) {
-	errvalidate := repo.Validate.Struct(req)
-	utils.IfErrorHandler(errvalidate)
 
-	result, err := db.Collection("user").InsertOne(ctx, req)
+	coll := db.Collection("user")
+	_, err := coll.Indexes().CreateOne(
+		ctx,
+		mongo.IndexModel{
+			Keys:    bson.M{"email": 1},
+			Options: options.Index().SetUnique(true),
+		},
+	)
+
+	utils.IfErrorHandler(err)
+
+	result, err := coll.InsertOne(ctx, req)
 	utils.IfErrorHandler(err)
 
 	id := result.InsertedID.(primitive.ObjectID).Hex()

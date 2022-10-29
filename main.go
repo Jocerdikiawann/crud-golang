@@ -31,8 +31,8 @@ func main() {
 	Db := app.DbConnect(dbUserName, dbPassword, dbName, dbHost, dbPort)
 	validate := validator.New()
 
-	userRepository := userrepositories.NewUserRepository(validate)
-	userService := userservices.NewUserService(userRepository, Db)
+	userRepository := userrepositories.NewUserRepository()
+	userService := userservices.NewUserService(userRepository, Db, validate)
 	userController := usercontroller.NewUserController(userService)
 
 	// categoryRepository := categoryrepositories.NewCategoryRepository()

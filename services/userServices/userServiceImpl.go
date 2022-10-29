@@ -4,10 +4,12 @@ import (
 	"belajar-golang-rest-api/models/response"
 	"belajar-golang-rest-api/models/user"
 	userrepositories "belajar-golang-rest-api/repository/userRepositories"
+	"belajar-golang-rest-api/utils"
 	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -15,12 +17,14 @@ import (
 type UserServiceImpl struct {
 	UserRepo userrepositories.UserRepository
 	Db       *mongo.Database
+	Validate *validator.Validate
 }
 
-func NewUserService(repo userrepositories.UserRepository, Db *mongo.Database) UserService {
+func NewUserService(repo userrepositories.UserRepository, Db *mongo.Database, validate *validator.Validate) UserService {
 	return &UserServiceImpl{
 		UserRepo: repo,
 		Db:       Db,
+		Validate: validate,
 	}
 }
 
@@ -29,6 +33,9 @@ func (c *UserServiceImpl) AuthSignIn(ctx *gin.Context) response.Response {
 	var payload user.AuthSignIn
 
 	err := ctx.BindJSON(&payload)
+
+	errValidate := c.Validate.Struct(payload)
+	utils.IfErrorHandler(errValidate)
 
 	userData, _ := c.UserRepo.AuthSignIn(ctx, c.Db, payload)
 
@@ -61,6 +68,9 @@ func (c *UserServiceImpl) Create(ctx *gin.Context) response.Response {
 	var req user.AuthSignUp
 
 	errJson := ctx.BindJSON(&req)
+
+	errValidate := c.Validate.Struct(req)
+	utils.IfErrorHandler(errValidate)
 
 	hashedPassword, errPass := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 

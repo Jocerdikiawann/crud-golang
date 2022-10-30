@@ -43,24 +43,24 @@ func (c *UserServiceImpl) AuthSignIn(ctx *gin.Context) response.Response {
 
 	if errComparePassword != nil {
 		return response.Response{
-			StatusCode: http.StatusNotFound,
-			Message:    "Wrong email or password",
-			Data:       gin.H{},
+			Code:    http.StatusNotFound,
+			Message: "Wrong email or password",
+			Data:    gin.H{},
 		}
 	}
 
 	if err != nil {
 		return response.Response{
-			StatusCode: http.StatusBadRequest,
-			Message:    err.Error(),
-			Data:       gin.H{},
+			Code:    http.StatusBadRequest,
+			Message: err.Error(),
+			Data:    gin.H{},
 		}
 	}
 
 	return response.Response{
-		StatusCode: http.StatusOK,
-		Message:    "ok",
-		Data:       userData,
+		Code:    http.StatusOK,
+		Message: "ok",
+		Data:    userData,
 	}
 }
 
@@ -80,32 +80,32 @@ func (c *UserServiceImpl) Create(ctx *gin.Context) response.Response {
 
 	if errJson != nil {
 		return response.Response{
-			StatusCode: http.StatusBadRequest,
-			Message:    errJson.Error(),
-			Data:       gin.H{},
+			Code:    http.StatusBadRequest,
+			Message: errJson.Error(),
+			Data:    gin.H{},
 		}
 	}
 
 	if errPass != nil {
 		return response.Response{
-			StatusCode: http.StatusBadRequest,
-			Message:    errPass.Error(),
-			Data:       gin.H{},
+			Code:    http.StatusBadRequest,
+			Message: errPass.Error(),
+			Data:    gin.H{},
 		}
 	}
 
 	if errData != nil {
 		return response.Response{
-			StatusCode: http.StatusBadRequest,
-			Message:    errData.Error(),
-			Data:       gin.H{},
+			Code:    http.StatusBadRequest,
+			Message: errData.Error(),
+			Data:    gin.H{},
 		}
 	}
 
 	return response.Response{
-		StatusCode: http.StatusCreated,
-		Message:    "ok",
-		Data:       result,
+		Code:    http.StatusCreated,
+		Message: "ok",
+		Data:    result,
 	}
 }
 
@@ -117,16 +117,16 @@ func (c *UserServiceImpl) GetUser(ctx *gin.Context) response.Response {
 
 	if err != nil {
 		return response.Response{
-			StatusCode: http.StatusNotFound,
-			Message:    "Account not found",
-			Data:       gin.H{},
+			Code:    http.StatusNotFound,
+			Message: "Account not found",
+			Data:    gin.H{},
 		}
 	}
 
 	return response.Response{
-		StatusCode: http.StatusOK,
-		Message:    "ok",
-		Data:       result,
+		Code:    http.StatusOK,
+		Message: "ok",
+		Data:    result,
 	}
 }
 
@@ -135,16 +135,16 @@ func (c *UserServiceImpl) GetUsers(ctx *gin.Context) response.Response {
 
 	if err != nil {
 		return response.Response{
-			StatusCode: http.StatusNotFound,
-			Message:    "Account not found",
-			Data:       gin.H{},
+			Code:    http.StatusNotFound,
+			Message: "Account not found",
+			Data:    gin.H{},
 		}
 	}
 
 	return response.Response{
-		StatusCode: http.StatusOK,
-		Message:    "ok",
-		Data:       result,
+		Code:    http.StatusOK,
+		Message: "ok",
+		Data:    result,
 	}
 }
 
@@ -167,25 +167,25 @@ func (c *UserServiceImpl) Update(ctx *gin.Context) response.Response {
 
 	if errJson != nil {
 		return response.Response{
-			StatusCode: http.StatusBadRequest,
-			Message:    errJson.Error(),
-			Data:       gin.H{},
+			Code:    http.StatusBadRequest,
+			Message: errJson.Error(),
+			Data:    gin.H{},
 		}
 	}
 
 	if errPass != nil {
 		return response.Response{
-			StatusCode: http.StatusBadRequest,
-			Message:    errPass.Error(),
-			Data:       gin.H{},
+			Code:    http.StatusBadRequest,
+			Message: errPass.Error(),
+			Data:    gin.H{},
 		}
 	}
 
 	if err != nil {
 		return response.Response{
-			StatusCode: http.StatusBadRequest,
-			Message:    err.Error(),
-			Data:       gin.H{},
+			Code:    http.StatusBadRequest,
+			Message: err.Error(),
+			Data:    gin.H{},
 		}
 	}
 
@@ -193,21 +193,21 @@ func (c *UserServiceImpl) Update(ctx *gin.Context) response.Response {
 		getNewData, errNewData := c.UserRepo.GetUser(ctx, c.Db, id)
 		if errNewData != nil {
 			return response.Response{
-				StatusCode: http.StatusBadRequest,
-				Message:    errNewData.Error(),
-				Data:       gin.H{},
+				Code:    http.StatusBadRequest,
+				Message: errNewData.Error(),
+				Data:    gin.H{},
 			}
 		}
 		return response.Response{
-			StatusCode: http.StatusOK,
-			Message:    "ok",
-			Data:       getNewData,
+			Code:    http.StatusOK,
+			Message: "ok",
+			Data:    getNewData,
 		}
 	}
 	return response.Response{
-		StatusCode: http.StatusOK,
-		Message:    "ok",
-		Data:       []string{},
+		Code:    http.StatusOK,
+		Message: "ok",
+		Data:    []string{},
 	}
 }
 
@@ -219,17 +219,17 @@ func (c *UserServiceImpl) Delete(ctx *gin.Context) response.Response {
 
 	if err != nil || !result {
 		return response.Response{
-			StatusCode: http.StatusNotFound,
-			Message:    err.Error(),
-			Data:       gin.H{},
+			Code:    http.StatusNotFound,
+			Message: err.Error(),
+			Data:    gin.H{},
 		}
 	}
 
 	res, _ := c.UserRepo.GetUsers(ctx, c.Db)
 
 	return response.Response{
-		StatusCode: http.StatusOK,
-		Message:    "ok",
-		Data:       res,
+		Code:    http.StatusOK,
+		Message: "ok",
+		Data:    res,
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -23,7 +24,7 @@ func DbConnect(usernameDb, passwordDb, nameDb, hostDb, portDb string) *mongo.Dat
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	clientOptions := options.Client().ApplyURI(uri).SetAuth(credential).SetMaxPoolSize(100).SetMinPoolSize(20)
+	clientOptions := options.Client().ApplyURI(uri).SetAuth(credential).SetMaxPoolSize(50)
 	client, err := mongo.NewClient(clientOptions)
 	utils.IfErrorHandler(err)
 
@@ -35,6 +36,15 @@ func DbConnect(usernameDb, passwordDb, nameDb, hostDb, portDb string) *mongo.Dat
 
 	db := client.Database(nameDb)
 
-	fmt.Println("Connect mongo")
+	_, errs := db.Collection("user").Indexes().CreateOne(
+		ctx,
+		mongo.IndexModel{
+			Keys:    bson.M{"email": 1},
+			Options: options.Index().SetUnique(true),
+		},
+	)
+
+	utils.Error.Println(errs)
+	utils.Info.Println("Connect mongo")
 	return db
 }

@@ -9,7 +9,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type UserRepositoryImpl struct {
@@ -42,18 +41,13 @@ func (repo *UserRepositoryImpl) AuthSignIn(ctx context.Context, db *mongo.Databa
 func (repo *UserRepositoryImpl) Create(ctx context.Context, db *mongo.Database, req user.AuthSignUp) (user.User, error) {
 
 	coll := db.Collection("user")
-	_, err := coll.Indexes().CreateOne(
-		ctx,
-		mongo.IndexModel{
-			Keys:    bson.M{"email": 1},
-			Options: options.Index().SetUnique(true),
-		},
-	)
-
-	utils.IfErrorHandler(err)
 
 	result, err := coll.InsertOne(ctx, req)
-	utils.IfErrorHandler(err)
+	utils.Error.Println(err)
+
+	if err != nil {
+		return user.User{}, err
+	}
 
 	id := result.InsertedID.(primitive.ObjectID).Hex()
 

@@ -49,11 +49,11 @@ func NewRouter(user usercontroller.UserController) routes { // category category
 func (r routes) routeNotFound() {
 	r.router.NoRoute(func(c *gin.Context) {
 		res := response.Response{
-			StatusCode: http.StatusNotFound,
-			Message:    "route not found",
-			Data:       gin.H{},
+			Code:    http.StatusNotFound,
+			Message: "route not found",
+			Data:    gin.H{},
 		}
-		c.IndentedJSON(res.StatusCode, res)
+		c.IndentedJSON(res.Code, res)
 	})
 }
 

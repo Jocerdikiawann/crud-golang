@@ -16,9 +16,9 @@ func MiddlewareAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		res := response.Response{
-			StatusCode: http.StatusUnauthorized,
-			Message:    "Unauthorized",
-			Data:       gin.H{},
+			Code:    http.StatusUnauthorized,
+			Message: "Unauthorized",
+			Data:    gin.H{},
 		}
 
 		header := c.GetHeader("Authorization")
@@ -40,12 +40,12 @@ func MiddlewareAuth() gin.HandlerFunc {
 				// fmt.Printf("token %v", token)
 			} else {
 
-				c.JSON(res.StatusCode, res)
+				c.JSON(res.Code, res)
 				c.Abort()
 				return
 			}
 		} else {
-			c.JSON(res.StatusCode, res)
+			c.JSON(res.Code, res)
 			c.Abort()
 			return
 		}

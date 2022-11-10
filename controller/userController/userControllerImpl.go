@@ -1,57 +1,57 @@
 package usercontroller
 
-import (
-	userservices "belajar-golang-rest-api/services/userServices"
+// import (
+// 	userservices "belajar-golang-rest-api/services/userServices"
 
-	"github.com/gin-gonic/gin"
-)
+// 	"github.com/gin-gonic/gin"
+// )
 
-type UserControllerImpl struct {
-	service userservices.UserService
-}
+// type UserControllerImpl struct {
+// 	service userservices.UserService
+// }
 
-func NewUserController(services userservices.UserService) UserController {
-	return &UserControllerImpl{
-		services,
-	}
-}
+// func NewUserController(services userservices.UserService) UserController {
+// 	return &UserControllerImpl{
+// 		services,
+// 	}
+// }
 
-func (controller *UserControllerImpl) AuthSignIn(ctx *gin.Context) {
-	res := controller.service.AuthSignIn(ctx)
+// func (controller *UserControllerImpl) AuthSignIn(ctx *gin.Context) {
+// 	res := controller.service.AuthSignIn(ctx)
 
-	ctx.IndentedJSON(res.Code, res)
-	return
-}
+// 	ctx.IndentedJSON(res.Code, res)
+// 	return
+// }
 
-func (controller *UserControllerImpl) Create(c *gin.Context) {
-	data := controller.service.Create(c)
+// func (controller *UserControllerImpl) Create(c *gin.Context) {
+// 	data := controller.service.Create(c)
 
-	c.IndentedJSON(data.Code, data)
-	return
-}
+// 	c.IndentedJSON(data.Code, data)
+// 	return
+// }
 
-func (controller *UserControllerImpl) GetUser(c *gin.Context) {
-	data := controller.service.GetUser(c)
+// func (controller *UserControllerImpl) GetUser(c *gin.Context) {
+// 	data := controller.service.GetUser(c)
 
-	c.IndentedJSON(data.Code, data)
-	return
-}
+// 	c.IndentedJSON(data.Code, data)
+// 	return
+// }
 
-func (controller *UserControllerImpl) GetUsers(c *gin.Context) {
-	data := controller.service.GetUsers(c)
+// func (controller *UserControllerImpl) GetUsers(c *gin.Context) {
+// 	data := controller.service.GetUsers(c)
 
-	c.IndentedJSON(data.Code, data)
-	return
-}
+// 	c.IndentedJSON(data.Code, data)
+// 	return
+// }
 
-func (controller *UserControllerImpl) Update(c *gin.Context) {
-	data := controller.service.Update(c)
-	c.IndentedJSON(data.Code, data)
-	return
-}
+// func (controller *UserControllerImpl) Update(c *gin.Context) {
+// 	data := controller.service.Update(c)
+// 	c.IndentedJSON(data.Code, data)
+// 	return
+// }
 
-func (controller *UserControllerImpl) Delete(c *gin.Context) {
-	data := controller.service.Delete(c)
-	c.IndentedJSON(data.Code, data)
-	return
-}
+// func (controller *UserControllerImpl) Delete(c *gin.Context) {
+// 	data := controller.service.Delete(c)
+// 	c.IndentedJSON(data.Code, data)
+// 	return
+// }

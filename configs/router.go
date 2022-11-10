@@ -1,6 +1,7 @@
-package app
+package configs
 
 import (
+	rolecontroller "belajar-golang-rest-api/controller/roleController"
 	usercontroller "belajar-golang-rest-api/controller/userController"
 	"belajar-golang-rest-api/middlewares"
 	"belajar-golang-rest-api/models/response"
@@ -13,7 +14,7 @@ type routes struct {
 	router *gin.Engine
 }
 
-func NewRouter(user usercontroller.UserController) routes { // category categorycontroller.CategoryController) routes {
+func NewRouter(user usercontroller.UserController, role rolecontroller.RoleController) routes { // category categorycontroller.CategoryController) routes {
 	r := routes{
 		router: gin.New(),
 	}
@@ -32,6 +33,10 @@ func NewRouter(user usercontroller.UserController) routes { // category category
 			userRoutes.GET("/", middlewares.MiddlewareAuth(), user.GetUsers)
 			userRoutes.PUT("/update", middlewares.MiddlewareAuth(), user.Update)
 			userRoutes.DELETE("/delete", middlewares.MiddlewareAuth(), user.Delete)
+		}
+		roleRoutes := v1.Group("roles")
+		{
+			roleRoutes.POST("/create", role.Create)
 		}
 		// categoryRoutes := v1.Group("category").Use(middlewares.MiddlewareAuth())
 		// {

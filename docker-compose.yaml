@@ -2,26 +2,43 @@ version: '3.9'
 
 
 services:
-  mongodb:
-    container_name: mongodb
-    image: mongo:latest
+
+  postgres:
+    container_name: postgres
+    image: postgres
     restart: always
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      POSTGRES_USER: ${PG_USER}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
-      - ${MONGO_PORT}:${MONGO_PORT}
+      - ${PG_PORT}:${PG_PORT}
     networks:
       - service-networks
     volumes:
-      - "mongo-data:/data/db"
+      - "data:/data/db"
     expose:
-      - ${MONGO_PORT}
-    command: mongod
+      - ${PG_PORT}
+
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${ADM_MAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${ADM_PASSWORD}
+    ports:
+      - ${ADM_PORT}:80
+    expose:
+      - ${ADM_PORT}
+    depends_on:
+      - postgres
+    networks:
+      - service-networks
+      
 networks:
   service-networks:
     driver: bridge
 
 volumes:
-  mongo-data:
+  data:
     driver: "local"

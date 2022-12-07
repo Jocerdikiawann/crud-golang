@@ -38,27 +38,15 @@ func TestSignUp(t *testing.T) {
 	ctx := context.TODO()
 
 	signUp, errs := repo.AuthSignUp(ctx, user.AuthSignUp{
-		Email:     "putri1@gmail.com",
+		Email:     "putri@gmail.com",
 		Password:  "passwordnya",
 		FirstName: "bacot",
 		LastName:  "putri",
 		Address:   "bonang",
-		RolesID:   []int{1,2},
+		RolesID:   []int{1, 2},
 	})
 
-	expect := user.User{
-		ID:        2,
-		Email:     "putri1@gmail.com",
-		Password:  "passwordnya",
-		FirstName: "bacot",
-		LastName:  "putri",
-		Address:   "bonang",
-		RolesID:   []int{1,2},
-	}
-
-	assert.Equal(
-		t, expect, signUp,
-	)
+	assert.Nil(t, signUp)
 
 	assert.Nil(t, errs)
 }
@@ -69,8 +57,8 @@ func TestSignIn(t *testing.T) {
 	ctx := context.TODO()
 
 	user, err := repo.AuthSignIn(ctx, user.AuthSignIn{
-		Email:    "putri1@gmail.com",
-		Password: "",
+		Email:    "putri@gmail.com",
+		Password: "passwordnya",
 	})
 
 	t.Log(user)

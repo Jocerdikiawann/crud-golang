@@ -12,7 +12,7 @@ type User struct {
 	LastName  string        `json:"last_name" gorm:"not null"`
 	Address   string        `json:"address" gorm:"not null"`
 	RolesID   []int         `json:"roles_id" gorm:"-"`
-	Roles     []roles.Roles `json:"roles" gorm:"many2many:users_roles"`
+	Roles     []roles.Roles `json:"-" gorm:"many2many:users_roles"`
 }
 
 type AuthSignIn struct {
@@ -29,19 +29,27 @@ type AuthSignUp struct {
 	RolesID   []int  `json:"roles_id"`
 }
 
-type UserRespone struct {
-	ID        int           `json:"id,omitempty" gorm:"primaryKey;<-:false"`
-	Email     string        `json:"email" gorm:"not null;uniqueIndex"`
-	Password  string        `json:"-" gorm:"not null"`
-	FirstName string        `json:"first_name" gorm:"not null"`
-	LastName  string        `json:"last_name" gorm:"not null"`
-	Address   string        `json:"address" gorm:"not null"`
-	Roles     []roles.Roles `json:"roles" gorm:"many2many:users_roles"`
+type UserUpdate struct {
+	ID        int    `json:"id,omitempty" gorm:"primaryKey;<-:false"`
+	Email     string `json:"email" gorm:"not null;uniqueIndex"`
+	FirstName string `json:"first_name" gorm:"not null"`
+	LastName  string `json:"last_name" gorm:"not null"`
+	Address   string `json:"address" gorm:"not null"`
 }
 
 type UsersRoles struct {
 	UserID  int `json:"user_id"`
 	RolesID int `json:"roles_id"`
+}
+
+func (u *UserUpdate) ToUser() User {
+	return User{
+		ID:        u.ID,
+		Email:     u.Email,
+		FirstName: u.FirstName,
+		LastName:  u.LastName,
+		Address:   u.Address,
+	}
 }
 
 func (auth *AuthSignUp) ToUser() User {

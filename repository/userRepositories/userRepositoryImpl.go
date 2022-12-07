@@ -3,9 +3,10 @@ package userrepositories
 import (
 	"belajar-golang-rest-api/models/user"
 	"context"
-	"errors"
 
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type UserRepositoryImpl struct {
@@ -25,11 +26,23 @@ func (r *UserRepositoryImpl) AuthSignIn(ctx context.Context, req user.AuthSignIn
 		Where("email = ?", req.Email).
 		Preload("Roles").
 		First(&user)
+
+	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
+
+	if err != nil {
+		return user, err
+	}
+	
 	return user, result.Error
 }
 
 func (r *UserRepositoryImpl) AuthSignUp(ctx context.Context, req user.AuthSignUp) (user.User, error) {
 	createdUser := req.ToUser()
+
+	hashPassword, _ := bcrypt.GenerateFromPassword([]byte(createdUser.Password), bcrypt.DefaultCost)
+
+	createdUser.Password = string(hashPassword[:])
+
 	result := r.Db.
 		WithContext(ctx).
 		Create(&createdUser)
@@ -39,6 +52,7 @@ func (r *UserRepositoryImpl) AuthSignUp(ctx context.Context, req user.AuthSignUp
 
 		userRole.UserID = createdUser.ID
 		userRole.RolesID = rolesID
+
 		result = r.Db.WithContext(ctx).Create(&userRole)
 	}
 
@@ -55,13 +69,22 @@ func (r *UserRepositoryImpl) GetUser(ctx context.Context, id uint) (user.User, e
 }
 
 func (r *UserRepositoryImpl) GetUsers(ctx context.Context) ([]user.User, error) {
-	return []user.User{}, errors.New("")
+	var users []user.User
+	result := r.Db.WithContext(ctx).
+		Preload("Roles").
+		Find(&users)
+
+	return users, result.Error
 }
 
-func (r *UserRepositoryImpl) Update(ctx context.Context, id uint, req user.AuthSignUp) (user.User, error) {
-	return user.User{}, errors.New("")
+func (r *UserRepositoryImpl) Update(ctx context.Context, id uint, req user.UserUpdate) (user.User, error) {
+	userModel := req.ToUser()
+	result := r.Db.Model(&userModel).
+		Clauses(clause.Returning{}).
+		Where("users.id = ?", req.ID)
+	return userModel, result.Error
 }
 
-func (r *UserRepositoryImpl) Delete(ctx context.Context, id uint) (bool, error) {
-	return false, errors.New("")
+func (r *UserRepositoryImpl) Delete(ctx context.Context, id uint) error {
+	return r.Db.Delete(&user.User{}, id).Error
 }

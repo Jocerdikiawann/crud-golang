@@ -40,7 +40,7 @@ func TestCreateRole(t *testing.T) {
 	})
 
 	expect := roles.Roles{
-		ID:   2,
+		ID:   1,
 		Name: "admin",
 	}
 

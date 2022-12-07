@@ -10,6 +10,6 @@ type UserRepository interface {
 	AuthSignUp(ctx context.Context, req user.AuthSignUp) (user.User, error)
 	GetUser(ctx context.Context, id uint) (user.User, error)
 	GetUsers(ctx context.Context) ([]user.User, error)
-	Update(ctx context.Context, id uint, req user.AuthSignUp) (user.User, error)
-	Delete(ctx context.Context, id uint) (bool, error)
+	Update(ctx context.Context, id uint, req user.UserUpdate) (user.User, error)
+	Delete(ctx context.Context, id uint) error
 }
